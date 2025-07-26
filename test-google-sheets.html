@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Test - Kartu Turizm</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="favicon.ico">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .test-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Google Sheets API Test</h1>
+        <p>Bu sayfa Google Sheets entegrasyonunu test etmek için hazırlanmıştır.</p>
+        
+        <div class="test-section">
+            <h3>🎯 Test Fonksiyonları:</h3>
+            <button class="test-button" onclick="testBasicConnection()">1. Temel Bağlantı Testi</button>
+            <button class="test-button" onclick="testSimpleData()">2. Basit Veri Gönderimi</button>
+            <button class="test-button" onclick="testFullFormData()">3. Tam Form Verisi</button>
+            <button class="test-button" onclick="testCORSSettings()">4. CORS Ayarları Testi</button>
+            <button class="test-button" onclick="clearResults()">❌ Sonuçları Temizle</button>
+        </div>
+
+        <div id="results"></div>
+
+        <div class="instructions">
+            <h3>📋 Olası Çözümler:</h3>
+            <ol>
+                <li><strong>Google Apps Script Permissions:</strong> Script'inizi yeniden deploy edin ve "Execute as: Me" ve "Who has access: Anyone" olarak ayarlayın</li>
+                <li><strong>Trigger Function:</strong> doPost fonksiyonunun doğru çalıştığından emin olun</li>
+                <li><strong>Sheet Permissions:</strong> Google Sheet'inizin herkes tarafından düzenlenebilir olduğundan emin olun</li>
+                <li><strong>Script URL:</strong> En son deployment URL'sini kullandığınızdan emin olun</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx11BpTsBDx3pNPvhviiF08gLNsQ9rVgyOQf9FpiqhuEctOrB-Se0uB0I8lT1UDvcNFHg/exec';
+
+        function logResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            results.appendChild(resultDiv);
+            results.scrollTop = results.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function testBasicConnection() {
+            logResult('🔄 Temel bağlantı testi başlatılıyor...', 'info');
+            
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'GET',
+                    mode: 'no-cors'
+                });
+                
+                logResult('✅ GET isteği gönderildi (no-cors mode)', 'success');
+                logResult('⚠️  no-cors mode kullanıldığı için response okunamıyor', 'info');
+                
+            } catch (error) {
+                logResult(`❌ Bağlantı hatası: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSimpleData() {
+            logResult('🔄 Basit veri gönderimi testi başlatılıyor...', 'info');
+            
+            const testData = {
+                test: true,
+                message: 'Test verisi',
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData),
+                    mode: 'no-cors'
+                });
+                
+                logResult('✅ POST isteği gönderildi (basit veri)', 'success');
+                logResult(`📤 Gönderilen veri: ${JSON.stringify(testData, null, 2)}`, 'info');
+                
+            } catch (error) {
+                logResult(`❌ Veri gönderimi hatası: ${error.message}`, 'error');
+            }
+        }
+
+        async function testFullFormData() {
+            logResult('🔄 Tam form verisi testi başlatılıyor...', 'info');
+            
+            const fullTestData = {
+                studentName: 'Test Öğrenci',
+                studentGrade: '1',
+                studentBranch: 'A',
+                schoolAddress: 'Şehit Ender Alper İlkokulu',
+                mainAddress: 'Test Mahallesi Test Sokak No:1',
+                buildingName: 'Test Apartmanı',
+                apartmentNumber: 'Daire 1',
+                addressNotes: 'Test adres notu',
+                fullAddress: 'Test Mahallesi Test Sokak No:1, Test Apartmanı Daire 1',
+                coordinates: { lat: 39.9208, lng: 32.8541 },
+                motherName: 'Test Anne',
+                motherPhone: '555 123 45 67',
+                motherEmail: 'test@anne.com',
+                fatherName: 'Test Baba',
+                fatherPhone: '555 987 65 43',
+                fatherEmail: 'test@baba.com',
+                additionalMessage: 'Test ek mesaj',
+                estimatedPrice: '3500 TL'
+            };
+
+            try {
+                // Try with CORS first to get debug response
+                let responseData = null;
+                
+                try {
+                    logResult('🔄 CORS mode ile deneniyor (debug bilgisi almak için)...', 'info');
+                    const response = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(fullTestData),
+                        mode: 'cors'
+                    });
+                    responseData = await response.json();
+                    logResult('✅ CORS başarılı - debug bilgisi alındı!', 'success');
+                } catch (corsError) {
+                    logResult('⚠️ CORS başarısız, no-cors ile devam ediliyor...', 'info');
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(fullTestData),
+                        mode: 'no-cors'
+                    });
+                }
+                
+                logResult('✅ POST isteği gönderildi (tam form verisi)', 'success');
+                
+                if (responseData && responseData.debug) {
+                    const debug = responseData.debug;
+                    logResult('🔍 DEBUG BİLGİLERİ:', 'info');
+                    logResult(`📊 Sheet: ${debug.sheetName}`, 'info');
+                    logResult(`📍 Hedef satır: ${debug.targetRow}`, 'info');
+                    logResult(`📋 Son veri satırı: ${debug.lastRowWithData}`, 'info');
+                    logResult(`📏 Row uzunluğu: ${debug.rowLength} (beklenen: ${debug.expectedColumns})`, 'info');
+                    logResult(`🗺️ Koordinatlar var mı: ${debug.coordinatesExists}`, 'info');
+                    logResult(`📍 Koordinat metni: "${debug.coordinatesText}"`, 'info');
+                    logResult(`👩 Anne adı: "${debug.motherName}"`, 'info');
+                    
+                    if (debug.fullRowData) {
+                        logResult('📋 SÜTUN VERİLERİ:', 'info');
+                        logResult(`[10] Koordinatlar: "${debug.fullRowData[10]}"`, 'info');
+                        logResult(`[11] Harita Linki: "${debug.fullRowData[11]}"`, 'info');
+                        logResult(`[12] Anne Adı: "${debug.fullRowData[12]}"`, 'info');
+                    }
+                } else {
+                    logResult('📋 Google Sheet\'inizi kontrol edin - yeni bir satır eklenmiş olmalı', 'success');
+                    logResult('📍 Koordinatlar sütununda lat, lng değerleri görünmelidir', 'info');
+                    logResult('✅ Harita linki kaldırıldı - sadece koordinatlar var', 'info');
+                }
+                
+            } catch (error) {
+                logResult(`❌ Tam veri gönderimi hatası: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCORSSettings() {
+            logResult('🔄 CORS ayarları testi başlatılıyor...', 'info');
+            
+            // Test 1: Normal CORS mode
+            try {
+                logResult('Test 1: Normal CORS mode...', 'info');
+                const response1 = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ test: 'cors-test' }),
+                    mode: 'cors'
+                });
+                
+                const result = await response1.text();
+                logResult(`✅ CORS mode başarılı: ${result}`, 'success');
+                
+            } catch (error) {
+                logResult(`❌ CORS mode hatası: ${error.message}`, 'error');
+                
+                // Test 2: no-cors mode fallback
+                try {
+                    logResult('Test 2: no-cors mode fallback...', 'info');
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ test: 'no-cors-test' }),
+                        mode: 'no-cors'
+                    });
+                    
+                    logResult('✅ no-cors mode çalışıyor', 'success');
+                    
+                } catch (error2) {
+                    logResult(`❌ no-cors mode da hatası: ${error2.message}`, 'error');
+                }
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            logResult('🚀 Test sayfası yüklendi. URL: ' + GOOGLE_SCRIPT_URL, 'info');
+            logResult('👆 Testleri başlatmak için yukarıdaki butonlara tıklayın', 'info');
+        });
+    </script>
+</body>
+</html> 

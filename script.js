@@ -809,7 +809,7 @@ function validateRegistrationForm() {
     return isValid;
 }
 
-function handleRegistrationSubmit(e) {
+async function handleRegistrationSubmit(e) {
     e.preventDefault();
     
     // Clear previous error messages
@@ -819,33 +819,119 @@ function handleRegistrationSubmit(e) {
     const isValid = validateRegistrationForm();
     
     if (isValid) {
-        // Collect form data
-        const formData = collectFormData();
+        // Show loading state
+        const submitButton = e.target.querySelector('button[type="submit"]');
+        const originalText = submitButton.textContent;
+        submitButton.textContent = 'Gönderiliyor...';
+        submitButton.disabled = true;
         
-        // Show success message
-        showSuccessMessage('Kayıt formunuz başarıyla gönderildi! En kısa sürede sizinle iletişime geçeceğiz.');
-        
-        // Optional: Redirect to Google Forms or send email
-        // window.location.href = 'https://forms.google.com/...';
-        // Or create mailto link
-        createMailtoLink(formData);
-        
-        // Reset form
-        e.target.reset();
-        
-        // Hide map and reset coordinates
-        const mapContainer = document.getElementById('mapContainer');
-        if (mapContainer) {
-            mapContainer.style.display = 'none';
+        try {
+            // Collect form data
+            const formData = collectFormData();
+            
+            // Submit to Google Sheets
+            await submitToGoogleSheets(formData);
+            
+            // Show success message
+            showSuccessMessage('🎉 Kayıt formunuz başarıyla gönderildi! En kısa sürede sizinle iletişime geçeceğiz.');
+            
+            // Reset form
+            e.target.reset();
+            
+            // Hide map and reset coordinates
+            const mapContainer = document.getElementById('mapContainer');
+            if (mapContainer) {
+                mapContainer.style.display = 'none';
+            }
+            selectedStudentCoordinates = null;
+            selectedSchoolCoordinates = null;
+            distanceMap = null;
+            studentMarker = null;
+            schoolMarker = null;
+            
+        } catch (error) {
+            console.error('Form submission error:', error);
+            showErrorMessage('❌ Kayıt gönderilirken bir hata oluştu. Lütfen tekrar deneyin veya bizimle iletişime geçin.');
+        } finally {
+            // Restore button state
+            submitButton.textContent = originalText;
+            submitButton.disabled = false;
         }
-        selectedStudentCoordinates = null;
-        selectedSchoolCoordinates = null;
-        distanceMap = null;
-        studentMarker = null;
-        schoolMarker = null;
     }
 }
 
+// Google Sheets submission function
+async function submitToGoogleSheets(formData) {
+    const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx11BpTsBDx3pNPvhviiF08gLNsQ9rVgyOQf9FpiqhuEctOrB-Se0uB0I8lT1UDvcNFHg/exec';
+    
+    const payload = {
+        studentName: formData.studentName || '',
+        studentGrade: formData.studentGrade || '',
+        studentBranch: formData.studentBranch || '',
+        schoolAddress: getSchoolDisplayName(formData.schoolAddress) || '',
+        mainAddress: formData.mainAddress || '',
+        buildingName: formData.buildingName || '',
+        apartmentNumber: formData.apartmentNumber || '',
+        addressNotes: formData.addressNotes || '',
+        fullAddress: formData.fullAddress || '',
+        coordinates: formData.coordinates,
+        motherName: formData.motherName || '',
+        motherPhone: formData.motherPhone || '',
+        motherEmail: formData.motherEmail || '',
+        fatherName: formData.fatherName || '',
+        fatherPhone: formData.fatherPhone || '',
+        fatherEmail: formData.fatherEmail || '',
+        additionalMessage: formData.additionalMessage || '',
+        estimatedPrice: formData.estimatedPrice || ''
+    };
+    
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
+    });
+    
+    // Create fetch promise
+    const fetchPromise = fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        mode: 'no-cors' // Required for Google Apps Script
+    });
+    
+    try {
+        // Race between fetch and timeout
+        await Promise.race([fetchPromise, timeoutPromise]);
+        
+        // Note: With no-cors mode, we can't read the response
+        // but if no error is thrown, we assume success
+        console.log('Form submitted to Google Sheets successfully');
+        return true;
+        
+    } catch (error) {
+        console.error('Google Sheets submission error:', error);
+        
+        // If Google Sheets fails, offer email fallback
+        if (confirm('Google Sheets bağlantısında sorun var. E-posta ile göndermek ister misiniz?')) {
+            createMailtoLink(formData);
+            return true; // Consider it successful since user chose email
+        }
+        
+        throw error; // Re-throw if user doesn't want email fallback
+    }
+}
+
+// Helper function to get school display name
+function getSchoolDisplayName(schoolKey) {
+    const schoolNames = {
+        'sehit-ender-alper-ilkokulu': 'Şehit Ender Alper İlkokulu',
+        'susuz-sehit-tamer-kilic-ortaokulu': 'Susuz Şehit Tamer Kılıç Ortaokulu'
+    };
+    return schoolNames[schoolKey] || schoolKey;
+}
+
+// Backup function - create mailto link (kept as fallback)
 function createMailtoLink(formData) {
     const subject = `Öğrenci Kayıt Formu - ${formData.studentName}`;
     
@@ -1098,6 +1184,33 @@ function showSuccessMessage(message) {
         setTimeout(() => {
             successDiv.remove();
         }, 5000);
+    }
+}
+
+function showErrorMessage(message) {
+    // Remove existing error message
+    const existingError = document.querySelector('.error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Create error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    
+    // Add to form
+    const form = document.querySelector('.form, .contact-form');
+    if (form) {
+        form.appendChild(errorDiv);
+        
+        // Scroll to error message
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Auto-remove after 8 seconds (longer than success for errors)
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 8000);
     }
 }
 
