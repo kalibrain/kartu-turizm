@@ -101,6 +101,15 @@
 
                     <div class="form-section">
                         <h2>🏠 Ev Adresi</h2>
+                        
+                        <div id="mapContainer" class="map-container" style="display: none;">
+                            <div class="map-header">
+                                <h4>📍 Harita Görünümü</h4>
+                                <p class="map-instruction">🎓 Öğrenci işaretini sürükleyerek konumunu ayarlayabilirsiniz</p>
+                            </div>
+                            <div id="distanceMap" class="distance-map"></div>
+                        </div>
+                        
                         <div class="form-group">
                             <label for="studentAddress">Ana Adres (Sokak/Mahalle) *</label>
                             <div class="address-input-container">
@@ -114,7 +123,7 @@
                                 <p><strong>Koordinatlar:</strong> <span id="addressCoordinates"></span></p>
                             </div>
                         </div>
-
+                        
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="buildingName">Apartman/Site Adı</label>

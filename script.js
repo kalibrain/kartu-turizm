@@ -3,6 +3,11 @@ let autocomplete;
 let selectedStudentCoordinates = null;
 let selectedSchoolCoordinates = null;
 
+// Map and markers variables
+let distanceMap = null;
+let studentMarker = null;
+let schoolMarker = null;
+
 // School addresses with coordinates
 const schoolAddresses = {
     'sehit-ender-alper-ilkokulu': 'Topçu, Ayyıldız, Şehit Ender Alper Sokak, 06796 Etimesgut/Ankara, Türkiye',
@@ -160,8 +165,17 @@ function autoCalculateDistance() {
     if (selectedStudentCoordinates && selectedSchoolCoordinates) {
         // Use Google Distance Matrix API for real driving distance
         calculateDrivingDistance(selectedStudentCoordinates, selectedSchoolCoordinates);
+        
+        // Initialize map when both coordinates are available
+        initializeDistanceMap();
     } else {
         updateDistanceDisplay(null);
+        
+        // Hide map if coordinates are missing
+        const mapContainer = document.getElementById('mapContainer');
+        if (mapContainer) {
+            mapContainer.style.display = 'none';
+        }
     }
 }
 
@@ -341,13 +355,10 @@ function updateDistanceDisplay(distance, isStraightLine = false) {
         
         // Calculate price based on distance
         const price = calculatePriceByDistance(distance);
-        let priceInfo = '';
         if (price) {
-            priceInfo = `<br><strong>Tahmini Aylık Ücret:</strong> <span class="price-value">${price.toLocaleString('tr-TR')} TL</span>`;
+            distanceInfo.innerHTML = `<strong>Tahmini Aylık Ücret:</strong> <span class="price-value">${price.toLocaleString('tr-TR')} TL</span>`;
+            addressDetails.appendChild(distanceInfo);
         }
-        
-        distanceInfo.innerHTML = `<strong>${distanceLabel}</strong> <span class="distance-value">${distance.toFixed(1)} km</span>${additionalInfo}${priceInfo}`;
-        addressDetails.appendChild(distanceInfo);
     }
 }
 
@@ -401,6 +412,149 @@ function toggleInfoNotice() {
     } else {
         infoContent.style.display = 'none';
         toggleIcon.textContent = '▼';
+    }
+}
+
+// Initialize distance map
+function initializeDistanceMap() {
+    if (!selectedStudentCoordinates || !selectedSchoolCoordinates) {
+        return;
+    }
+
+    const mapContainer = document.getElementById('mapContainer');
+    const mapElement = document.getElementById('distanceMap');
+    
+    if (!mapElement) return;
+
+    // Show map container
+    mapContainer.style.display = 'block';
+
+    // Calculate center point between student and school
+    const centerLat = (selectedStudentCoordinates.lat + selectedSchoolCoordinates.lat) / 2;
+    const centerLng = (selectedStudentCoordinates.lng + selectedSchoolCoordinates.lng) / 2;
+
+    // Initialize map
+    distanceMap = new google.maps.Map(mapElement, {
+        center: { lat: centerLat, lng: centerLng },
+        zoom: 13,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        gestureHandling: 'cooperative',
+        zoomControl: true,
+        zoomControlOptions: {
+            position: google.maps.ControlPosition.RIGHT_CENTER,
+            style: google.maps.ZoomControlStyle.DEFAULT
+        },
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: true,
+        fullscreenControlOptions: {
+            position: google.maps.ControlPosition.TOP_RIGHT
+        }
+    });
+
+    // Create custom icons
+    const studentIcon = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="18" fill="#007bff" stroke="#fff" stroke-width="3"/>
+                <text x="20" y="28" font-family="Arial" font-size="20" fill="white" text-anchor="middle">🎓</text>
+            </svg>
+        `),
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20)
+    };
+
+    const schoolIcon = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="18" fill="#dc3545" stroke="#fff" stroke-width="3"/>
+                <text x="20" y="28" font-family="Arial" font-size="20" fill="white" text-anchor="middle">🏫</text>
+            </svg>
+        `),
+        scaledSize: new google.maps.Size(40, 40),
+        anchor: new google.maps.Point(20, 20)
+    };
+
+    // Create student marker (draggable)
+    studentMarker = new google.maps.Marker({
+        position: selectedStudentCoordinates,
+        map: distanceMap,
+        icon: studentIcon,
+        title: 'Öğrenci Evi (Konum ayarlamak için sürükleyin)',
+        draggable: true,
+        clickable: true,
+        optimized: false
+    });
+
+    // Create school marker (fixed position - not draggable)
+    schoolMarker = new google.maps.Marker({
+        position: selectedSchoolCoordinates,
+        map: distanceMap,
+        icon: schoolIcon,
+        title: 'Okul (Sabit Konum)',
+        draggable: false,
+        clickable: true,
+        optimized: false
+    });
+
+    // Add drag listener to student marker
+    studentMarker.addListener('dragend', function(event) {
+        const newPosition = {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng()
+        };
+        
+        // Update coordinates
+        selectedStudentCoordinates = newPosition;
+        
+        // Update coordinate display
+        updateCoordinateDisplay();
+        
+        // Show loading state in price info
+        const addressDetails = document.getElementById('addressDetails');
+        if (addressDetails) {
+            const distanceInfo = addressDetails.querySelector('.distance-info');
+            if (distanceInfo) {
+                distanceInfo.innerHTML = '<strong>Hesaplanıyor...</strong> <span style="opacity: 0.7;">Yeni mesafe hesaplanıyor</span>';
+            }
+        }
+        
+        // Recalculate distance and price
+        calculateDrivingDistance(selectedStudentCoordinates, selectedSchoolCoordinates);
+        
+        console.log('Student marker moved to:', newPosition);
+    });
+
+    // Fit map to show both markers
+    const bounds = new google.maps.LatLngBounds();
+    bounds.extend(selectedStudentCoordinates);
+    bounds.extend(selectedSchoolCoordinates);
+    distanceMap.fitBounds(bounds);
+    
+    // Add some padding to the bounds
+    setTimeout(() => {
+        const currentZoom = distanceMap.getZoom();
+        if (currentZoom > 15) {
+            distanceMap.setZoom(15);
+        }
+    }, 100);
+
+    console.log('Distance map initialized with markers');
+    
+    // Scroll map into view smoothly
+    setTimeout(() => {
+        mapContainer.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'nearest' 
+        });
+    }, 500);
+}
+
+// Update coordinate display
+function updateCoordinateDisplay() {
+    const coordinatesElement = document.getElementById('addressCoordinates');
+    if (coordinatesElement && selectedStudentCoordinates) {
+        coordinatesElement.textContent = `${selectedStudentCoordinates.lat.toFixed(6)}, ${selectedStudentCoordinates.lng.toFixed(6)}`;
     }
 }
 
@@ -522,8 +676,7 @@ function collectFormData() {
         // Additional Info
         additionalMessage: document.getElementById('additionalMessage')?.value,
         
-        // Distance Info
-        calculatedDistance: getCalculatedDistance(),
+        // Price Info
         estimatedPrice: getEstimatedPrice()
     };
     
@@ -554,10 +707,9 @@ function generateFullAddress() {
     return fullAddress;
 }
 
-// Get calculated distance from the UI
+// Get calculated distance from the UI (now returns null since distance is not displayed)
 function getCalculatedDistance() {
-    const distanceElement = document.querySelector('.distance-info .distance-value');
-    return distanceElement ? distanceElement.textContent : null;
+    return null; // Distance is no longer displayed on screen
 }
 
 // Get estimated price from the UI
@@ -680,6 +832,17 @@ function handleRegistrationSubmit(e) {
         
         // Reset form
         e.target.reset();
+        
+        // Hide map and reset coordinates
+        const mapContainer = document.getElementById('mapContainer');
+        if (mapContainer) {
+            mapContainer.style.display = 'none';
+        }
+        selectedStudentCoordinates = null;
+        selectedSchoolCoordinates = null;
+        distanceMap = null;
+        studentMarker = null;
+        schoolMarker = null;
     }
 }
 
@@ -703,7 +866,6 @@ ${formData.buildingName ? `Apartman/Site: ${formData.buildingName}` : ''}
 Daire/Blok: ${formData.apartmentNumber}
 ${formData.addressNotes ? `Adres Notları: ${formData.addressNotes}` : ''}
 Tam Adres: ${formData.fullAddress}
-${formData.calculatedDistance ? `Mesafe: ${formData.calculatedDistance}` : ''}
 ${formData.estimatedPrice ? `Tahmini Aylık Ücret: ${formData.estimatedPrice}` : ''}
 
 Anne Bilgileri:

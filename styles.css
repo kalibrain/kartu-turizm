@@ -166,6 +166,41 @@ main {
     font-size: 1.2rem;
 }
 
+/* Map container styling */
+.map-container {
+    margin-top: 20px;
+    margin-bottom: 25px;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.map-header {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    padding: 15px 20px;
+    text-align: center;
+}
+
+.map-header h4 {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.map-instruction {
+    margin: 0;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.distance-map {
+    height: 400px;
+    width: 100%;
+    background-color: #f8f9fa;
+}
+
 /* Hero Section */
 .hero {
     background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
