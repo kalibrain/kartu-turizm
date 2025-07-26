@@ -26,7 +26,6 @@ The application follows a traditional static website architecture:
 ### Core Files
 - `styles.css` - Comprehensive stylesheet with responsive design
 - `script.js` - JavaScript functionality for navigation, forms, and interactions
-- `/attached_assets/` - Additional resources and requirements
 
 ### Navigation System
 - Fixed header navigation with mobile hamburger menu
@@ -72,11 +71,3 @@ Future considerations may include:
 - Form submission will require backend integration
 - Database for storing student registrations
 - Email notification system
-
-## Changelog
-
-- June 29, 2025. Initial setup
-
-## User Preferences
-
-Preferred communication style: Simple, everyday language.

@@ -1308,15 +1308,9 @@ label[for="apartmentNumber"]::after {
 /* Form section headers with icons */
 .form-section h2 {
     position: relative;
-    padding-left: 30px;
 }
 
-.form-section h2:has(+ .form-group label[for="studentAddress"])::before {
-    content: "🏠";
-    position: absolute;
-    left: 0;
-    font-size: 20px;
-}
+
 
 /* Field grouping visual enhancement */
 .form-group {
@@ -1348,4 +1342,695 @@ label[for="apartmentNumber"]::after {
     color: #28a745;
     font-weight: bold;
     font-size: 16px;
+}
+
+/* Enhanced Services Page Styling */
+.services-grid.equal-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.services-grid.equal-cards .service-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 35px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: auto;
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    border: 2px solid transparent;
+}
+
+.services-grid.equal-cards .service-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    border-color: #007bff;
+}
+
+.services-grid.equal-cards .service-icon {
+    font-size: 56px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.services-grid.equal-cards .service-card h3 {
+    color: #2c3e50;
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.services-grid.equal-cards .service-card p {
+    color: #666;
+    line-height: 1.7;
+    margin-bottom: 0;
+    text-align: center;
+    flex-grow: 1;
+    font-size: 16px;
+}
+
+/* Contact Services Section - Improved */
+.contact-services {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 50px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 0 0 50px 0;
+    border: 1px solid #dee2e6;
+}
+
+.contact-services h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.contact-services p {
+    margin-bottom: 40px;
+    font-size: 18px;
+    color: #495057;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.contact-option {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid #f1f3f4;
+    transition: all 0.3s ease;
+}
+
+.contact-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    border-color: #007bff;
+}
+
+.contact-option h4 {
+    color: #495057;
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.contact-btn {
+    display: block;
+    padding: 12px 20px;
+    margin: 10px 0;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 16px;
+}
+
+.phone-btn {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.phone-btn:hover {
+    background: linear-gradient(135deg, #138496, #0f6674);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.whatsapp-btn {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: 2px solid transparent;
+}
+
+.whatsapp-btn:hover {
+    background: linear-gradient(135deg, #128c7e, #075e54);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+/* WhatsApp Button Styling */
+.btn-whatsapp {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+.btn-whatsapp:hover {
+    background: linear-gradient(135deg, #128c7e, #075e54);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* Footer links styling */
+.footer-section p a {
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-section p a:hover {
+    color: #007bff;
+    text-decoration: underline;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .services-grid.equal-cards {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .services-grid.equal-cards .service-card {
+        min-height: 250px;
+        padding: 30px 25px;
+    }
+    
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .contact-services {
+        padding: 35px 25px;
+    }
+    
+    .contact-services h2 {
+        font-size: 26px;
+    }
+}
+
+@media (max-width: 480px) {
+    .services-grid.equal-cards .service-card {
+        min-height: 220px;
+        padding: 25px 20px;
+    }
+    
+    .services-grid.equal-cards .service-card h3 {
+        font-size: 20px;
+    }
+    
+    .services-grid.equal-cards .service-icon {
+        font-size: 48px;
+    }
+    
+    .contact-option {
+        padding: 25px 20px;
+    }
+}
+
+/* Wider container for contact page */
+.container-wide {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 30px;
+}
+
+/* Contact Page Layout */
+.contact-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 80px;
+}
+
+.contact-info-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border: 2px solid #f1f3f4;
+}
+
+.contact-info-card h2 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 30px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.contact-details-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.contact-detail h4 {
+    color: #495057;
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: 600;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.contact-detail p {
+    color: #666;
+    line-height: 1.6;
+    margin: 8px 0;
+}
+
+.contact-detail a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.contact-detail a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Phone Numbers Styling */
+.phone-numbers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.phone-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    background: #ffffff;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.phone-link {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: #ffffff !important;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    flex: 1;
+    text-align: center;
+    font-size: 15px;
+    border: 2px solid transparent;
+}
+
+.phone-link:hover {
+    background: linear-gradient(135deg, #138496, #0f6674);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.whatsapp-link {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    color: #ffffff !important;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    border: 2px solid transparent;
+}
+
+.whatsapp-link:hover {
+    background: linear-gradient(135deg, #128c7e, #075e54);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    color: #ffffff;
+    text-decoration: none;
+}
+
+/* Contact Form Section */
+.contact-form-section {
+    background: #fff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border: 2px solid #f1f3f4;
+}
+
+.contact-form-section h2 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 30px;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* FAQ Accordion Styling */
+.faq-section {
+    margin-top: 50px;
+}
+
+.faq-section h2 {
+    color: #2c3e50;
+    font-size: 28px;
+    margin-bottom: 30px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.faq-accordion {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: #fff;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.faq-item:hover {
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+}
+
+.faq-question {
+    padding: 16px 20px;
+    background: #f8f9fa;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.faq-question:hover {
+    background: #e9ecef;
+}
+
+.faq-question.active {
+    background: #dc3545;
+    color: white !important;
+    border-bottom-color: #dc3545;
+}
+
+.faq-question.active h4 {
+    color: white !important;
+}
+
+.faq-question h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+    line-height: 1.4;
+}
+
+.faq-toggle {
+    font-size: 20px;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+    margin-left: 15px;
+    width: 20px;
+    text-align: center;
+}
+
+.faq-question.active .faq-toggle {
+    transform: rotate(45deg);
+}
+
+.faq-answer {
+    padding: 0 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    background: #fff;
+}
+
+.faq-answer.active {
+    padding: 16px 20px;
+    max-height: 150px;
+}
+
+.faq-answer p {
+    margin: 0;
+    color: #555;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .container-wide {
+        padding: 0 20px;
+    }
+    
+    .contact-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .contact-info-card,
+    .contact-form-section {
+        padding: 30px 25px;
+    }
+    
+    .phone-item {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .phone-link,
+    .whatsapp-link {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .faq-question {
+        padding: 14px 16px;
+    }
+    
+    .faq-question h4 {
+        font-size: 15px;
+    }
+    
+    .faq-answer.active {
+        padding: 14px 16px;
+    }
+    
+    .faq-answer p {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .contact-info-card,
+    .contact-form-section {
+        padding: 25px 20px;
+    }
+    
+    .contact-info-card h2,
+    .contact-form-section h2 {
+        font-size: 24px;
+    }
+    
+    .faq-section h2 {
+        font-size: 24px;
+    }
+    
+    .phone-item {
+        padding: 10px 12px;
+    }
+    
+    .phone-link,
+    .whatsapp-link {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+}
+
+/* Logo clickable styling */
+.nav-logo a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-logo a:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-logo a h2 {
+    transition: color 0.3s ease;
+}
+
+.nav-logo a:hover h2 {
+    color: #007bff;
+}
+
+/* Hizmetlerimiz button - better contrast on red background */
+.btn-secondary {
+    background-color: #ffffff !important;
+    color: #dc3545 !important;
+    border: 2px solid #ffffff !important;
+}
+
+.btn-secondary:hover {
+    background-color: #f8f9fa !important;
+    color: #c82333 !important;
+    border: 2px solid #f8f9fa !important;
+}
+
+/* About page - Full width text layout */
+.about-text-full {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.about-text-full h2 {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+    text-align: center;
+}
+
+.about-text-full h3 {
+    font-size: 1.8rem;
+    margin: 2.5rem 0 1rem 0;
+    color: #2c3e50;
+}
+
+.about-text-full p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    color: #555;
+    text-align: justify;
+}
+
+/* Stats moved to bottom */
+.about-stats-bottom {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-top: 4rem;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.about-stats-bottom .stat-card {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.about-stats-bottom .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    border-color: #007bff;
+}
+
+.about-stats-bottom .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #dc3545;
+    margin-bottom: 0.5rem;
+}
+
+.about-stats-bottom .stat-label {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 600;
+}
+
+/* Mobile responsive for about page */
+@media (max-width: 768px) {
+    .about-text-full {
+        padding: 0 20px;
+    }
+    
+    .about-text-full h2 {
+        font-size: 1.8rem;
+    }
+    
+    .about-text-full h3 {
+        font-size: 1.5rem;
+    }
+    
+    .about-text-full p {
+        font-size: 1rem;
+        text-align: left;
+    }
+    
+    .about-stats-bottom {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin-top: 3rem;
+    }
+    
+    .about-stats-bottom .stat-card {
+        padding: 1rem;
+    }
+    
+    .about-stats-bottom .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .about-stats-bottom .stat-label {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .about-stats-bottom {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+    }
+    
+    .about-stats-bottom .stat-card {
+        padding: 0.8rem;
+    }
+    
+    .about-stats-bottom .stat-number {
+        font-size: 1.3rem;
+    }
+    
+    .about-stats-bottom .stat-label {
+        font-size: 0.8rem;
+    }
 }

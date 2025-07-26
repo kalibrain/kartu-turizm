@@ -441,6 +441,31 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+// FAQ Accordion Toggle
+function toggleFAQ(element) {
+    const faqItem = element.parentElement;
+    const faqAnswer = faqItem.querySelector('.faq-answer');
+    const isActive = element.classList.contains('active');
+    
+    // Close all other FAQ items
+    const allFaqQuestions = document.querySelectorAll('.faq-question');
+    const allFaqAnswers = document.querySelectorAll('.faq-answer');
+    
+    allFaqQuestions.forEach(question => {
+        question.classList.remove('active');
+    });
+    
+    allFaqAnswers.forEach(answer => {
+        answer.classList.remove('active');
+    });
+    
+    // Toggle current item if it wasn't active
+    if (!isActive) {
+        element.classList.add('active');
+        faqAnswer.classList.add('active');
+    }
+}
+
 // Mobile Navigation Toggle
 document.addEventListener('DOMContentLoaded', function() {
     const navToggle = document.getElementById('nav-toggle');

@@ -12,7 +12,7 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="nav-logo">
-                    <h2>Kartu Turizm</h2>
+                    <a href="index.html"><h2>Kartu Turizm</h2></a>
                 </div>
                 <div class="nav-menu" id="nav-menu">
                     <a href="index.html" class="nav-link">Ana Sayfa</a>
@@ -32,60 +32,43 @@
 
     <main>
         <section class="page-header">
-            <div class="container">
+            <div class="container-wide">
                 <h1>İletişim</h1>
                 <p>Bizimle iletişime geçin</p>
             </div>
         </section>
 
         <section class="contact-section">
-            <div class="container">
-                <div class="contact-grid">
-                    <div class="contact-info">
+            <div class="container-wide">
+                <div class="contact-layout">
+                    <div class="contact-info-card">
                         <h2>İletişim Bilgileri</h2>
-                        
-                        <div class="contact-item">
-                            <div class="contact-icon">📞</div>
-                            <div class="contact-details">
-                                <h4>Telefon</h4>
-                                <p>0212 XXX XX XX</p>
-                                <p>0535 XXX XX XX</p>
+                        <div class="contact-details-grid">
+                            <div class="contact-detail">
+                                <h4>📞 Telefon Numaralarımız</h4>
+                                <div class="phone-numbers">
+                                    <div class="phone-item">
+                                        <a href="tel:+905336176236" class="phone-link">+90 533 617 6236</a>
+                                        <a href="https://wa.me/905336176236" target="_blank" class="whatsapp-link">💬 WhatsApp</a>
+                                    </div>
+                                    <div class="phone-item">
+                                        <a href="tel:+905345226799" class="phone-link">+90 534 522 6799</a>
+                                        <a href="https://wa.me/905345226799" target="_blank" class="whatsapp-link">💬 WhatsApp</a>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="contact-item">
-                            <div class="contact-icon">📧</div>
-                            <div class="contact-details">
-                                <h4>E-posta</h4>
-                                <p>info@kartuturizm.com</p>
-                                <p>kayit@kartuturizm.com</p>
+                            
+                            <div class="contact-detail">
+                                <h4>📧 E-posta Adresleri</h4>
+                                <p><a href="mailto:info@kartuturizm.com">info@kartuturizm.com</a></p>
+                                <p><a href="mailto:kayit@kartuturizm.com">kayit@kartuturizm.com</a></p>
                             </div>
-                        </div>
 
-                        <div class="contact-item">
-                            <div class="contact-icon">📍</div>
-                            <div class="contact-details">
-                                <h4>Adres</h4>
-                                <p>Merkez Mahallesi<br>
-                                Atatürk Caddesi No: 123<br>
-                                34000 İstanbul</p>
+                            <div class="contact-detail">
+                                <h4>📍 Adres</h4>
+                                <p>Eryaman Mahallesi<br>
+                                Ankara, Türkiye</p>
                             </div>
-                        </div>
-
-                        <div class="contact-item">
-                            <div class="contact-icon">🕒</div>
-                            <div class="contact-details">
-                                <h4>Çalışma Saatleri</h4>
-                                <p>Pazartesi - Cuma: 08:00 - 18:00</p>
-                                <p>Cumartesi: 09:00 - 15:00</p>
-                                <p>Pazar: Kapalı</p>
-                            </div>
-                        </div>
-
-                        <div class="emergency-contact">
-                            <h4>🚨 Acil Durum Hattı</h4>
-                            <p class="emergency-number">0555 XXX XX XX</p>
-                            <small>24 saat ulaşılabilir</small>
                         </div>
                     </div>
 
@@ -133,35 +116,56 @@
 
                 <div class="faq-section">
                     <h2>Sık Sorulan Sorular</h2>
-                    <div class="faq-grid">
+                    <div class="faq-accordion">
                         <div class="faq-item">
-                            <h4>Kayıt için hangi belgeler gerekli?</h4>
-                            <p>Öğrenci kimlik fotokopisi, veli kimlik fotokopisi ve okul kaydını gösteren belge gerekmektedir.</p>
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <h4>Kayıt için hangi belgeler gerekli?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Öğrenci kimlik fotokopisi, veli kimlik fotokopisi ve okul kaydını gösteren belge gerekmektedir.</p>
+                            </div>
                         </div>
                         
                         <div class="faq-item">
-                            <h4>Ücret nasıl ödenir?</h4>
-                            <p>Yıllık ücret tek seferde veya 9 taksit halinde ödenebilir. Kredi kartı, havale ve nakit ödeme kabul edilir.</p>
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <h4>Ücret nasıl ödenir?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer">
+                                <p>IBAN hesabına havale ve nakit olarak yapabilirsiniz.</p>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="faq-item">
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <h4>Hastalık durumunda ne yapmalıyım?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Öğrenciniz hasta olduğunda lütfen sabah 07:30'a kadar bizi arayarak bilgilendirin.</p>
+                            </div>
                         </div>
                         
                         <div class="faq-item">
-                            <h4>Servisleri nasıl takip edebilirim?</h4>
-                            <p>GPS takip sistemi ile servisin konumunu anlık olarak WhatsApp üzerinden takip edebilirsiniz.</p>
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <h4>Tatil günlerinde servis var mı?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Okul tatillerinde ve resmi tatillerde servis hizmeti verilmez. Özel durumlar için görüşülebilir.</p>
+                            </div>
                         </div>
                         
                         <div class="faq-item">
-                            <h4>Hastalık durumunda ne yapmalıyım?</h4>
-                            <p>Öğrenciniz hasta olduğunda lütfen sabah 07:30'a kadar bizi arayarak bilgilendirin.</p>
-                        </div>
-                        
-                        <div class="faq-item">
-                            <h4>Tatil günlerinde servis var mı?</h4>
-                            <p>Okul tatillerinde ve resmi tatillerde servis hizmeti verilmez. Özel durumlar için görüşülebilir.</p>
-                        </div>
-                        
-                        <div class="faq-item">
-                            <h4>İptal durumunda ücret iade edilir mi?</h4>
-                            <p>Hizmet başlamadan 15 gün öncesine kadar yapılan iptallerde tam iade yapılır.</p>
+                            <div class="faq-question" onclick="toggleFAQ(this)">
+                                <h4>İptal durumunda ücret iade edilir mi?</h4>
+                                <span class="faq-toggle">+</span>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Hizmet başlamadan 15 gün öncesine kadar yapılan iptallerde tam iade yapılır.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,9 +190,11 @@
                 </div>
                 <div class="footer-section">
                     <h4>İletişim</h4>
-                    <p>📞 0212 XXX XX XX</p>
+                    <p>📞 <a href="tel:+905336176236">+90 533 617 6236</a></p>
+                    <p>📞 <a href="tel:+905345226799">+90 534 522 6799</a></p>
+                    <p>💬 <a href="https://wa.me/905336176236" target="_blank">WhatsApp</a></p>
                     <p>📧 info@kartuturizm.com</p>
-                    <p>📍 İstanbul, Türkiye</p>
+                    <p>📍 Ankara, Türkiye</p>
                 </div>
             </div>
             <div class="footer-bottom">
