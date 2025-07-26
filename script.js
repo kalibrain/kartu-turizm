@@ -1,0 +1,995 @@
+// Global variables for Google Maps
+let autocomplete;
+let selectedStudentCoordinates = null;
+let selectedSchoolCoordinates = null;
+
+// School addresses for geocoding
+const schoolAddresses = {
+    'eryaman-turkkent-ilkokulu': 'Eryaman, Dil Devrimi Cd. Eryaman Evleri, 06824 Etimesgut/Ankara, Türkiye',
+    'eryaman-kooperatifler-ortaokulu': 'Eryaman Mah Dildevrimi Cad, Eryaman, 287. Sk. No:4, 06793 Etimesgut/Ankara, Türkiye',
+    'eryaman-basak-anaokulu': 'Eryaman, 284. Sk. No:4, 06824 Etimesgut/Ankara, Türkiye'
+};
+
+// Cache for school coordinates to avoid repeated API calls
+let schoolCoordinatesCache = {};
+
+// Google Maps Autocomplete Initialization
+function initAutocomplete() {
+    // Initialize autocomplete for student address
+    const studentAddressInput = document.getElementById('studentAddress');
+    
+    if (studentAddressInput) {
+        // Create autocomplete instance
+        autocomplete = new google.maps.places.Autocomplete(studentAddressInput, {
+            types: ['address'],
+            componentRestrictions: { country: 'tr' }, // Restrict to Turkey
+            fields: ['formatted_address', 'geometry', 'address_components']
+        });
+
+        // Set bias to Ankara region for better local results
+        autocomplete.setBounds(new google.maps.LatLngBounds(
+            new google.maps.LatLng(39.7, 32.4), // Southwest Ankara
+            new google.maps.LatLng(40.1, 33.1)  // Northeast Ankara
+        ));
+
+        // Add place changed listener
+        autocomplete.addListener('place_changed', function() {
+            handleAddressSelection();
+        });
+
+        // Add input event listener for loading state
+        studentAddressInput.addEventListener('input', function() {
+            showAddressLoading();
+        });
+
+        // Hide loading when user stops typing
+        let timeoutId;
+        studentAddressInput.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(hideAddressLoading, 1500);
+        });
+    }
+
+    // Add school selection change listener
+    const schoolSelect = document.getElementById('schoolAddress');
+    if (schoolSelect) {
+        schoolSelect.addEventListener('change', handleSchoolSelection);
+    }
+
+    console.log('Google Maps Autocomplete initialized successfully');
+}
+
+// Handle address selection
+function handleAddressSelection() {
+    const place = autocomplete.getPlace();
+    
+    if (!place.geometry) {
+        showAddressError('Lütfen önerilerden bir adres seçin.');
+        return;
+    }
+
+    hideAddressLoading();
+    hideAddressError();
+
+    // Store coordinates
+    selectedStudentCoordinates = {
+        lat: place.geometry.location.lat(),
+        lng: place.geometry.location.lng()
+    };
+
+    // Update UI with selected address details
+    updateAddressDisplay(place.formatted_address);
+
+    // Auto-calculate distance if school is already selected
+    autoCalculateDistance();
+
+    console.log('Address selected:', place.formatted_address, selectedStudentCoordinates);
+}
+
+// Handle school selection
+function handleSchoolSelection() {
+    const schoolSelect = document.getElementById('schoolAddress');
+    const selectedSchoolValue = schoolSelect.value;
+    
+    if (!selectedSchoolValue) {
+        selectedSchoolCoordinates = null;
+        updateDistanceDisplay(null);
+        return;
+    }
+
+    // Get school coordinates
+    getSchoolCoordinates(selectedSchoolValue).then(coordinates => {
+        selectedSchoolCoordinates = coordinates;
+        console.log('School selected:', selectedSchoolValue, coordinates);
+        
+        // Auto-calculate distance if student address is already selected
+        autoCalculateDistance();
+    }).catch(error => {
+        console.error('Error getting school coordinates:', error);
+        showAddressError('Okul koordinatları alınamadı. Lütfen tekrar deneyin.');
+    });
+}
+
+// Get school coordinates using Geocoding API
+async function getSchoolCoordinates(schoolKey) {
+    // Check cache first
+    if (schoolCoordinatesCache[schoolKey]) {
+        return schoolCoordinatesCache[schoolKey];
+    }
+
+    const address = schoolAddresses[schoolKey];
+    if (!address) {
+        throw new Error('School address not found');
+    }
+
+    try {
+        const geocoder = new google.maps.Geocoder();
+        
+        return new Promise((resolve, reject) => {
+            geocoder.geocode(
+                { 
+                    address: address,
+                    region: 'TR',
+                    componentRestrictions: { country: 'TR' }
+                }, 
+                (results, status) => {
+                    if (status === 'OK' && results[0]) {
+                        const coordinates = {
+                            lat: results[0].geometry.location.lat(),
+                            lng: results[0].geometry.location.lng()
+                        };
+                        
+                        // Cache the result
+                        schoolCoordinatesCache[schoolKey] = coordinates;
+                        resolve(coordinates);
+                    } else {
+                        reject(new Error(`Geocoding failed: ${status}`));
+                    }
+                }
+            );
+        });
+    } catch (error) {
+        throw new Error(`Geocoding error: ${error.message}`);
+    }
+}
+
+// Auto-calculate distance when both addresses are available
+function autoCalculateDistance() {
+    if (selectedStudentCoordinates && selectedSchoolCoordinates) {
+        // Use Google Distance Matrix API for real driving distance
+        calculateDrivingDistance(selectedStudentCoordinates, selectedSchoolCoordinates);
+    } else {
+        updateDistanceDisplay(null);
+    }
+}
+
+// Calculate driving distance using Google Distance Matrix API
+function calculateDrivingDistance(studentCoords, schoolCoords) {
+    const service = new google.maps.DistanceMatrixService();
+    
+    service.getDistanceMatrix({
+        origins: [new google.maps.LatLng(studentCoords.lat, studentCoords.lng)],
+        destinations: [new google.maps.LatLng(schoolCoords.lat, schoolCoords.lng)],
+        travelMode: google.maps.TravelMode.DRIVING,
+        unitSystem: google.maps.UnitSystem.METRIC,
+        avoidHighways: false,
+        avoidTolls: false
+    }, function(response, status) {
+        if (status === 'OK') {
+            const result = response.rows[0].elements[0];
+            
+            if (result.status === 'OK') {
+                // Extract distance in kilometers
+                const distanceText = result.distance.text;
+                const distanceValue = result.distance.value / 1000; // Convert meters to km
+                const durationText = result.duration.text;
+                
+                console.log('Driving distance calculated:', distanceValue, 'km');
+                updateDistanceDisplay(distanceValue, durationText);
+            } else {
+                console.error('Distance calculation failed:', result.status);
+                // Fallback to straight-line distance
+                const straightDistance = calculateHaversineDistance(
+                    studentCoords.lat, studentCoords.lng,
+                    schoolCoords.lat, schoolCoords.lng
+                );
+                updateDistanceDisplay(straightDistance, null, true);
+            }
+        } else {
+            console.error('Distance Matrix API failed:', status);
+            // Fallback to straight-line distance
+            const straightDistance = calculateHaversineDistance(
+                studentCoords.lat, studentCoords.lng,
+                schoolCoords.lat, schoolCoords.lng
+            );
+            updateDistanceDisplay(straightDistance, null, true);
+        }
+    });
+}
+
+// Update address display with distance information
+function updateAddressDisplay(formattedAddress) {
+    const addressDetails = document.getElementById('addressDetails');
+    const selectedAddress = document.getElementById('selectedAddress');
+    const addressCoordinates = document.getElementById('addressCoordinates');
+
+    if (addressDetails && selectedAddress && addressCoordinates) {
+        selectedAddress.textContent = formattedAddress;
+        addressCoordinates.textContent = `${selectedStudentCoordinates.lat.toFixed(6)}, ${selectedStudentCoordinates.lng.toFixed(6)}`;
+        addressDetails.style.display = 'block';
+        addressDetails.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Add apartment details update functionality
+        setupAddressDetailsUpdates();
+    }
+}
+
+// Setup real-time updates for complete address display
+function setupAddressDetailsUpdates() {
+    const apartmentFields = ['buildingName', 'apartmentNumber', 'addressNotes'];
+    
+    apartmentFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !field.hasAttribute('data-listener-added')) {
+            field.addEventListener('input', updateCompleteAddressDisplay);
+            field.setAttribute('data-listener-added', 'true');
+        }
+    });
+}
+
+// Update the complete address display in real-time
+function updateCompleteAddressDisplay() {
+    const selectedAddressElement = document.getElementById('selectedAddress');
+    const addressDetails = document.getElementById('addressDetails');
+    
+    if (!selectedAddressElement || !addressDetails) return;
+    
+    const mainAddress = document.getElementById('studentAddress')?.value || '';
+    const buildingName = document.getElementById('buildingName')?.value || '';
+    const apartmentNumber = document.getElementById('apartmentNumber')?.value || '';
+    const addressNotes = document.getElementById('addressNotes')?.value || '';
+    
+    // Update the display to show complete address
+    let displayAddress = mainAddress;
+    let apartmentInfo = [];
+    
+    if (buildingName) {
+        apartmentInfo.push(buildingName);
+    }
+    
+    if (apartmentNumber) {
+        apartmentInfo.push(`Daire: ${apartmentNumber}`);
+    }
+    
+    if (apartmentInfo.length > 0) {
+        displayAddress += ` | ${apartmentInfo.join(', ')}`;
+    }
+    
+    selectedAddressElement.textContent = displayAddress;
+    
+    // Add or update apartment details in the display
+    updateApartmentDetailsInDisplay(buildingName, apartmentNumber, addressNotes);
+}
+
+// Add apartment details to the address details section
+function updateApartmentDetailsInDisplay(buildingName, apartmentNumber, addressNotes) {
+    const addressDetails = document.getElementById('addressDetails');
+    if (!addressDetails) return;
+    
+    // Remove existing apartment info
+    const existingApartmentInfo = addressDetails.querySelector('.apartment-details');
+    if (existingApartmentInfo) {
+        existingApartmentInfo.remove();
+    }
+    
+    // Add new apartment info if any details are provided
+    if (buildingName || apartmentNumber || addressNotes) {
+        const apartmentDetails = document.createElement('div');
+        apartmentDetails.className = 'apartment-details';
+        
+        let apartmentHTML = '<p><strong>Detay Bilgiler:</strong></p><ul>';
+        
+        if (buildingName) {
+            apartmentHTML += `<li><strong>Apartman/Site:</strong> ${buildingName}</li>`;
+        }
+        
+        if (apartmentNumber) {
+            apartmentHTML += `<li><strong>Daire/Blok:</strong> ${apartmentNumber}</li>`;
+        }
+        
+        if (addressNotes) {
+            apartmentHTML += `<li><strong>Notlar:</strong> ${addressNotes}</li>`;
+        }
+        
+        apartmentHTML += '</ul>';
+        apartmentDetails.innerHTML = apartmentHTML;
+        
+        // Insert before distance info if it exists, otherwise append
+        const distanceInfo = addressDetails.querySelector('.distance-info');
+        if (distanceInfo) {
+            addressDetails.insertBefore(apartmentDetails, distanceInfo);
+        } else {
+            addressDetails.appendChild(apartmentDetails);
+        }
+    }
+}
+
+// Update distance display in address details
+function updateDistanceDisplay(distance, duration = null, isStraightLine = false) {
+    const addressDetails = document.getElementById('addressDetails');
+    
+    if (!addressDetails) return;
+
+    // Remove existing distance info
+    const existingDistance = addressDetails.querySelector('.distance-info');
+    if (existingDistance) {
+        existingDistance.remove();
+    }
+
+    if (distance !== null) {
+        // Add distance information
+        const distanceInfo = document.createElement('p');
+        distanceInfo.className = 'distance-info';
+        
+        let distanceLabel = 'Araç ile Mesafe:';
+        let additionalInfo = '';
+        
+        if (isStraightLine) {
+            distanceLabel = 'Düz Mesafe:';
+            additionalInfo = ' <small>(Kuş uçuşu)</small>';
+        } else if (duration) {
+            additionalInfo = ` <small>(~${duration})</small>`;
+        }
+        
+        distanceInfo.innerHTML = `<strong>${distanceLabel}</strong> <span class="distance-value">${distance.toFixed(1)} km</span>${additionalInfo}`;
+        addressDetails.appendChild(distanceInfo);
+
+        // Also update the main distance result section
+        const distanceResult = document.getElementById('distanceResult');
+        if (distanceResult) {
+            let resultLabel = 'Ev ile okul arası araç mesafesi';
+            if (isStraightLine) {
+                resultLabel = 'Ev ile okul arası düz mesafe';
+            }
+            
+            distanceResult.innerHTML = `
+                <div class="distance-value">${distance.toFixed(1)} km</div>
+                <div class="distance-label">${resultLabel}</div>
+                ${duration ? `<div class="duration-info">Yaklaşık süre: ${duration}</div>` : ''}
+            `;
+            distanceResult.classList.add('show');
+        }
+    }
+}
+
+// Show/hide loading state
+function showAddressLoading() {
+    const loading = document.getElementById('addressLoading');
+    if (loading) {
+        loading.style.display = 'flex';
+    }
+}
+
+function hideAddressLoading() {
+    const loading = document.getElementById('addressLoading');
+    if (loading) {
+        loading.style.display = 'none';
+    }
+}
+
+// Show/hide error state
+function showAddressError(message) {
+    let errorDiv = document.querySelector('.address-error');
+    
+    if (!errorDiv) {
+        errorDiv = document.createElement('div');
+        errorDiv.className = 'address-error';
+        const addressContainer = document.querySelector('.address-input-container');
+        if (addressContainer && addressContainer.parentNode) {
+            addressContainer.parentNode.insertBefore(errorDiv, addressContainer.nextSibling);
+        }
+    }
+    
+    errorDiv.textContent = message;
+    errorDiv.classList.add('show');
+}
+
+function hideAddressError() {
+    const errorDiv = document.querySelector('.address-error');
+    if (errorDiv) {
+        errorDiv.classList.remove('show');
+    }
+}
+
+// Enhanced distance calculation
+function calculateRealDistance() {
+    // This function is now mainly for manual calculation button
+    // Auto-calculation happens in autoCalculateDistance()
+    
+    if (!selectedStudentCoordinates) {
+        showAddressError('Önce öğrenci adresini seçin.');
+        return;
+    }
+
+    const schoolSelect = document.getElementById('schoolAddress');
+    const selectedSchoolValue = schoolSelect.value;
+    
+    if (!selectedSchoolValue) {
+        alert('Lütfen önce okul seçin.');
+        return;
+    }
+
+    // If coordinates are already available, just calculate
+    if (selectedSchoolCoordinates) {
+        autoCalculateDistance();
+    } else {
+        // Get coordinates and then calculate
+        handleSchoolSelection();
+    }
+}
+
+// Haversine formula for distance calculation
+function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+// Mobile Navigation Toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const navToggle = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('nav-menu');
+
+    if (navToggle && navMenu) {
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+
+        // Close menu when clicking on a link
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                navMenu.classList.remove('active');
+            });
+        });
+    }
+
+    // Initialize form functionality
+    initializeRegistrationForm();
+    initializeContactForm();
+    initializeModals();
+});
+
+// Registration Form Functions
+function initializeRegistrationForm() {
+    const registrationForm = document.getElementById('studentRegistrationForm');
+    const calculateDistanceBtn = document.getElementById('calculateDistance');
+    
+    if (registrationForm) {
+        registrationForm.addEventListener('submit', handleRegistrationSubmit);
+    }
+    
+    if (calculateDistanceBtn) {
+        calculateDistanceBtn.addEventListener('click', calculateRealDistance);
+    }
+
+    // Add auto-formatting for apartment number field
+    const apartmentNumberField = document.getElementById('apartmentNumber');
+    if (apartmentNumberField) {
+        apartmentNumberField.addEventListener('input', formatApartmentNumber);
+    }
+}
+
+// Auto-format apartment number input
+function formatApartmentNumber(event) {
+    let value = event.target.value;
+    // Auto-capitalize first letters and format common patterns
+    value = value.replace(/\b\w/g, char => char.toUpperCase());
+    event.target.value = value;
+}
+
+// Enhanced form data collection including apartment details
+function collectFormData() {
+    const formData = {
+        // Student Info
+        studentName: document.getElementById('studentName')?.value,
+        studentGrade: document.getElementById('studentGrade')?.value,
+        studentAge: document.getElementById('studentAge')?.value,
+        
+        // School Info
+        schoolAddress: document.getElementById('schoolAddress')?.value,
+        
+        // Enhanced Address Info
+        mainAddress: document.getElementById('studentAddress')?.value,
+        buildingName: document.getElementById('buildingName')?.value,
+        apartmentNumber: document.getElementById('apartmentNumber')?.value,
+        addressNotes: document.getElementById('addressNotes')?.value,
+        fullAddress: generateFullAddress(),
+        coordinates: selectedStudentCoordinates,
+        
+        // Parent Info
+        parentName: document.getElementById('parentName')?.value,
+        parentPhone: document.getElementById('parentPhone')?.value,
+        parentEmail: document.getElementById('parentEmail')?.value,
+        
+        // Additional Info
+        additionalMessage: document.getElementById('additionalMessage')?.value,
+        
+        // Distance Info
+        calculatedDistance: getCalculatedDistance()
+    };
+    
+    return formData;
+}
+
+// Generate full address string combining all address fields
+function generateFullAddress() {
+    const mainAddress = document.getElementById('studentAddress')?.value || '';
+    const buildingName = document.getElementById('buildingName')?.value || '';
+    const apartmentNumber = document.getElementById('apartmentNumber')?.value || '';
+    const addressNotes = document.getElementById('addressNotes')?.value || '';
+    
+    let fullAddress = mainAddress;
+    
+    if (buildingName) {
+        fullAddress += `, ${buildingName}`;
+    }
+    
+    if (apartmentNumber) {
+        fullAddress += `, ${apartmentNumber}`;
+    }
+    
+    if (addressNotes) {
+        fullAddress += ` (${addressNotes})`;
+    }
+    
+    return fullAddress;
+}
+
+// Get calculated distance from the UI
+function getCalculatedDistance() {
+    const distanceElement = document.querySelector('.distance-result .distance-value');
+    return distanceElement ? distanceElement.textContent : null;
+}
+
+// Enhanced form validation including apartment details
+function validateRegistrationForm() {
+    let isValid = true;
+    
+    // Clear previous errors
+    clearErrorMessages();
+    
+    // Required fields validation
+    const requiredFields = [
+        'studentName',
+        'studentGrade', 
+        'studentAge',
+        'schoolAddress',
+        'studentAddress',
+        'apartmentNumber', // New required field
+        'parentName',
+        'parentPhone'
+    ];
+    
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (!field || !field.value.trim()) {
+            showFieldError(field, 'Bu alan zorunludur.');
+            isValid = false;
+        }
+    });
+    
+    // Apartment number format validation
+    const apartmentField = document.getElementById('apartmentNumber');
+    if (apartmentField && apartmentField.value.trim()) {
+        const apartmentValue = apartmentField.value.trim();
+        if (apartmentValue.length < 2) {
+            showFieldError(apartmentField, 'Daire/blok numarası çok kısa. Örn: "A5" veya "Kat 2 No 8"');
+            isValid = false;
+        }
+    }
+    
+    // Phone number validation  
+    const phoneField = document.getElementById('parentPhone');
+    if (phoneField && phoneField.value && !validatePhoneNumber(phoneField.value)) {
+        showFieldError(phoneField, 'Geçerli bir telefon numarası giriniz.');
+        isValid = false;
+    }
+    
+    // Email validation
+    const emailField = document.getElementById('parentEmail');
+    if (emailField && emailField.value && !validateEmail(emailField.value)) {
+        showFieldError(emailField, 'Geçerli bir e-posta adresi giriniz.');
+        isValid = false;
+    }
+    
+    // Address selection validation
+    if (!selectedStudentCoordinates) {
+        const addressField = document.getElementById('studentAddress');
+        showFieldError(addressField, 'Lütfen adres önerilerinden birini seçin.');
+        isValid = false;
+    }
+    
+    // Agreement checkboxes validation
+    const contractCheckbox = document.getElementById('contractAgreement');
+    const kvkkCheckbox = document.getElementById('kvkkAgreement');
+    
+    if (!contractCheckbox || !contractCheckbox.checked) {
+        showFieldError(contractCheckbox, 'Taşımacılık sözleşmesini kabul etmeniz gerekiyor.');
+        isValid = false;
+    }
+    
+    if (!kvkkCheckbox || !kvkkCheckbox.checked) {
+        showFieldError(kvkkCheckbox, 'KVKK aydınlatma metnini kabul etmeniz gerekiyor.');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+function handleRegistrationSubmit(e) {
+    e.preventDefault();
+    
+    // Clear previous error messages
+    clearErrorMessages();
+    
+    // Validate form
+    const isValid = validateRegistrationForm();
+    
+    if (isValid) {
+        // Collect form data
+        const formData = collectFormData();
+        
+        // Show success message
+        showSuccessMessage('Kayıt formunuz başarıyla gönderildi! En kısa sürede sizinle iletişime geçeceğiz.');
+        
+        // Optional: Redirect to Google Forms or send email
+        // window.location.href = 'https://forms.google.com/...';
+        // Or create mailto link
+        createMailtoLink(formData);
+        
+        // Reset form
+        e.target.reset();
+        hideDistanceResult();
+    }
+}
+
+function createMailtoLink(formData) {
+    const subject = `Öğrenci Kayıt Formu - ${formData.studentName}`;
+    
+    const body = `
+KARTU TURİZM ÖĞRENCİ KAYIT FORMU
+
+Öğrenci Bilgileri:
+Ad Soyad: ${formData.studentName}
+Sınıf: ${formData.studentGrade}
+Yaş: ${formData.studentAge}
+
+Okul Bilgileri:
+Okul: ${formData.schoolAddress}
+
+Adres Bilgileri:
+Ana Adres: ${formData.mainAddress}
+${formData.buildingName ? `Apartman/Site: ${formData.buildingName}` : ''}
+Daire/Blok: ${formData.apartmentNumber}
+${formData.addressNotes ? `Adres Notları: ${formData.addressNotes}` : ''}
+Tam Adres: ${formData.fullAddress}
+${formData.calculatedDistance ? `Mesafe: ${formData.calculatedDistance}` : ''}
+
+Veli Bilgileri:
+Ad Soyad: ${formData.parentName}
+Telefon: ${formData.parentPhone}
+${formData.parentEmail ? `E-posta: ${formData.parentEmail}` : ''}
+
+${formData.additionalMessage ? `Ek Mesaj: ${formData.additionalMessage}` : ''}
+
+Koordinatlar: ${formData.coordinates ? `${formData.coordinates.lat}, ${formData.coordinates.lng}` : 'Belirtilmedi'}
+
+Bu form otomatik olarak oluşturulmuştur.
+Kartu Turizm - ${new Date().toLocaleDateString('tr-TR')}
+    `.trim();
+
+    const mailtoLink = `mailto:info@kartuturizm.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    window.open(mailtoLink);
+}
+
+// Distance Calculation Function
+function handleDistanceCalculation() {
+    const schoolAddress = document.getElementById('schoolAddress').value;
+    const studentAddress = document.getElementById('studentAddress').value;
+    const distanceResult = document.getElementById('distanceResult');
+    const calculateBtn = document.getElementById('calculateDistance');
+    
+    if (!schoolAddress || !studentAddress.trim()) {
+        showFieldError(document.getElementById('studentAddress'), 'Okul ve ev adresi seçilmelidir.');
+        return;
+    }
+    
+    // Show loading
+    calculateBtn.innerHTML = '<span class="loading"></span> Hesaplanıyor...';
+    calculateBtn.disabled = true;
+    
+    // Mock distance calculation (as requested)
+    hesaplaMesafe(schoolAddress, studentAddress)
+        .then(distance => {
+            distanceResult.innerHTML = `Mesafe: ${distance}`;
+            distanceResult.classList.add('show');
+        })
+        .catch(error => {
+            distanceResult.innerHTML = 'Mesafe hesaplanamadı. Lütfen tekrar deneyin.';
+            distanceResult.classList.add('show');
+            console.error('Distance calculation error:', error);
+        })
+        .finally(() => {
+            calculateBtn.innerHTML = 'Mesafe Hesapla';
+            calculateBtn.disabled = false;
+        });
+}
+
+// Mock distance calculation function (as specified in requirements)
+function hesaplaMesafe(okulAdres, ogrenciAdres) {
+    // Mock: 3.2 km döndür
+    return Promise.resolve("3.2 km");
+}
+
+function hideDistanceResult() {
+    const distanceResult = document.getElementById('distanceResult');
+    if (distanceResult) {
+        distanceResult.classList.remove('show');
+    }
+}
+
+// Contact Form Functions
+function initializeContactForm() {
+    const contactForm = document.getElementById('contactForm');
+    
+    if (contactForm) {
+        contactForm.addEventListener('submit', handleContactSubmit);
+    }
+}
+
+function handleContactSubmit(e) {
+    e.preventDefault();
+    
+    // Clear previous error messages
+    clearErrorMessages();
+    
+    // Validate contact form
+    const isValid = validateContactForm();
+    
+    if (isValid) {
+        // Collect contact form data
+        const formData = {
+            name: document.getElementById('contactName').value,
+            email: document.getElementById('contactEmail').value,
+            phone: document.getElementById('contactPhone').value,
+            subject: document.getElementById('contactSubject').value,
+            message: document.getElementById('contactMessage').value
+        };
+        
+        // Create mailto link for contact form
+        const subject = encodeURIComponent(`İletişim: ${formData.subject}`);
+        const body = encodeURIComponent(`
+İsim: ${formData.name}
+E-posta: ${formData.email}
+Telefon: ${formData.phone}
+Konu: ${formData.subject}
+
+Mesaj:
+${formData.message}
+        `);
+        
+        const mailtoLink = `mailto:info@kartuturizm.com?subject=${subject}&body=${body}`;
+        window.location.href = mailtoLink;
+        
+        // Show success message
+        showSuccessMessage('Mesajınız gönderildi! En kısa sürede size dönüş yapacağız.');
+        
+        // Reset form
+        e.target.reset();
+    }
+}
+
+function validateContactForm() {
+    let isValid = true;
+    
+    // Required fields validation
+    const requiredFields = [
+        'contactName',
+        'contactEmail',
+        'contactSubject',
+        'contactMessage'
+    ];
+    
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById(fieldName);
+        if (!field.value.trim()) {
+            showFieldError(field, 'Bu alan zorunludur.');
+            isValid = false;
+        }
+    });
+    
+    // Email validation
+    const emailField = document.getElementById('contactEmail');
+    if (emailField.value && !validateEmail(emailField.value)) {
+        showFieldError(emailField, 'Geçerli bir e-posta adresi giriniz.');
+        isValid = false;
+    }
+    
+    // Phone validation (optional field)
+    const phoneField = document.getElementById('contactPhone');
+    if (phoneField.value && !validatePhoneNumber(phoneField.value)) {
+        showFieldError(phoneField, 'Geçerli bir telefon numarası giriniz.');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+// Modal Functions
+function initializeModals() {
+    const showContractBtn = document.getElementById('showContract');
+    const showKVKKBtn = document.getElementById('showKVKK');
+    const contractModal = document.getElementById('contractModal');
+    const kvkkModal = document.getElementById('kvkkModal');
+    const closeContractModal = document.getElementById('closeContractModal');
+    const closeKVKKModal = document.getElementById('closeKVKKModal');
+    
+    // Contract modal
+    if (showContractBtn && contractModal) {
+        showContractBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            contractModal.style.display = 'block';
+        });
+    }
+    
+    if (closeContractModal && contractModal) {
+        closeContractModal.addEventListener('click', function() {
+            contractModal.style.display = 'none';
+        });
+    }
+    
+    // KVKK modal
+    if (showKVKKBtn && kvkkModal) {
+        showKVKKBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            kvkkModal.style.display = 'block';
+        });
+    }
+    
+    if (closeKVKKModal && kvkkModal) {
+        closeKVKKModal.addEventListener('click', function() {
+            kvkkModal.style.display = 'none';
+        });
+    }
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === contractModal) {
+            contractModal.style.display = 'none';
+        }
+        if (event.target === kvkkModal) {
+            kvkkModal.style.display = 'none';
+        }
+    });
+}
+
+// Utility Functions
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePhoneNumber(phone) {
+    // Turkish phone number validation
+    const phoneRegex = /^(\+90|0)?[5][0-9]{9}$|^(\+90|0)?[2-4][0-9]{8}$/;
+    const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+    return phoneRegex.test(cleanPhone);
+}
+
+function showFieldError(field, message) {
+    // Remove existing error message
+    const existingError = field.parentNode.querySelector('.error-message');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    // Add error class to field
+    field.style.borderColor = '#dc3545';
+    
+    // Create and show error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    field.parentNode.appendChild(errorDiv);
+}
+
+function clearErrorMessages() {
+    // Remove all error messages
+    const errorMessages = document.querySelectorAll('.error-message');
+    errorMessages.forEach(error => error.remove());
+    
+    // Reset field styles
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.style.borderColor = '#e9ecef';
+    });
+}
+
+function showSuccessMessage(message) {
+    // Remove existing success message
+    const existingSuccess = document.querySelector('.success-message');
+    if (existingSuccess) {
+        existingSuccess.remove();
+    }
+    
+    // Create success message
+    const successDiv = document.createElement('div');
+    successDiv.className = 'success-message';
+    successDiv.textContent = message;
+    
+    // Add to form
+    const form = document.querySelector('.form, .contact-form');
+    if (form) {
+        form.appendChild(successDiv);
+        
+        // Scroll to success message
+        successDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            successDiv.remove();
+        }, 5000);
+    }
+}
+
+// Smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Form field auto-formatting
+document.addEventListener('input', function(e) {
+    // Phone number formatting
+    if (e.target.type === 'tel') {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('90')) {
+            value = value.substring(2);
+        }
+        if (value.length > 0) {
+            if (value.length <= 3) {
+                value = value;
+            } else if (value.length <= 6) {
+                value = value.substring(0, 3) + ' ' + value.substring(3);
+            } else if (value.length <= 8) {
+                value = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6);
+            } else {
+                value = value.substring(0, 3) + ' ' + value.substring(3, 6) + ' ' + value.substring(6, 8) + ' ' + value.substring(8, 10);
+            }
+        }
+        e.target.value = value;
+    }
+});
+
+// Prevent form submission on Enter key in text inputs (except textarea)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.target.type === 'text' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+    }
+});

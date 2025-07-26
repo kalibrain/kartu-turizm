@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Kaydı - Kartu Turizm</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Kartu Turizm öğrenci taşımacılığı kayıt formu">
+    <!-- Google Maps Places API -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCUN0jvNlw7daVmuZ-QPnakHXNbpyz5hPQ&libraries=places,geometry&language=tr&region=TR&callback=initAutocomplete"></script>
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h2>Kartu Turizm</h2>
+                </div>
+                <div class="nav-menu" id="nav-menu">
+                    <a href="index.html" class="nav-link">Ana Sayfa</a>
+                    <a href="hakkimizda.html" class="nav-link">Hakkımızda</a>
+                    <a href="hizmetler.html" class="nav-link">Hizmetler</a>
+                    <a href="ogrenci-kayit.html" class="nav-link active">Öğrenci Kaydı</a>
+                    <a href="iletisim.html" class="nav-link">İletişim</a>
+                </div>
+                <div class="nav-toggle" id="nav-toggle">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>Öğrenci Kaydı</h1>
+                <p>Güvenli taşımacılık hizmeti için kayıt formu</p>
+            </div>
+        </section>
+
+        <section class="registration-form">
+            <div class="container">
+                <form id="studentRegistrationForm" class="form">
+                    <div class="form-section">
+                        <h2>Öğrenci Bilgileri</h2>
+                        <div class="form-group">
+                            <label for="studentName">Öğrenci Adı Soyadı *</label>
+                            <input type="text" id="studentName" name="studentName" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="studentGrade">Sınıfı *</label>
+                                <select id="studentGrade" name="studentGrade" required>
+                                    <option value="">Seçiniz</option>
+                                    <option value="anasinifi">Anaokulu</option>
+                                    <option value="1">1. Sınıf</option>
+                                    <option value="2">2. Sınıf</option>
+                                    <option value="3">3. Sınıf</option>
+                                    <option value="4">4. Sınıf</option>
+                                    <option value="5">5. Sınıf</option>
+                                    <option value="6">6. Sınıf</option>
+                                    <option value="7">7. Sınıf</option>
+                                    <option value="8">8. Sınıf</option>
+                                    <option value="9">9. Sınıf</option>
+                                    <option value="10">10. Sınıf</option>
+                                    <option value="11">11. Sınıf</option>
+                                    <option value="12">12. Sınıf</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="studentAge">Yaşı *</label>
+                                <input type="number" id="studentAge" name="studentAge" min="3" max="18" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Okul Bilgileri</h2>
+                        <div class="form-group">
+                            <label for="schoolAddress">Okul Adresi *</label>
+                            <select id="schoolAddress" name="schoolAddress" required>
+                                <option value="">Okulunuzu seçiniz</option>
+                                <option value="eryaman-turkkent-ilkokulu">Eryaman Türkkent İlkokulu - Eryaman, Dil Devrimi Cd.</option>
+                                <option value="eryaman-kooperatifler-ortaokulu">Eryaman Kooperatifler Birliği Ortaokulu - Eryaman Mah</option>
+                                <option value="eryaman-basak-anaokulu">Eryaman Başak Anaokulu - Eryaman, 284. Sk.</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Ev Adresi</h2>
+                        <div class="form-group">
+                            <label for="studentAddress">Ana Adres (Sokak/Mahalle) *</label>
+                            <div class="address-input-container">
+                                <input type="text" id="studentAddress" name="studentAddress" placeholder="Sokak, mahalle, ilçe yazın..." required autocomplete="off">
+                                <div id="addressLoading" class="address-loading" style="display: none;">
+                                    <span>Adres aranıyor...</span>
+                                </div>
+                            </div>
+                            <div id="addressDetails" class="address-details" style="display: none;">
+                                <p><strong>Seçilen Adres:</strong> <span id="selectedAddress"></span></p>
+                                <p><strong>Koordinatlar:</strong> <span id="addressCoordinates"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="buildingName">Apartman/Site Adı</label>
+                                <input type="text" id="buildingName" name="buildingName" placeholder="Örn: Gül Apartmanı, Çiçek Sitesi">
+                            </div>
+                            <div class="form-group">
+                                <label for="apartmentNumber">Daire/Blok No *</label>
+                                <input type="text" id="apartmentNumber" name="apartmentNumber" placeholder="Örn: A Blok Daire 5, Kat 3 No 12" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="addressNotes">Adres Tarifi (Opsiyonel)</label>
+                            <textarea id="addressNotes" name="addressNotes" rows="2" placeholder="Ek adres bilgileri, tarif, özel notlar..."></textarea>
+                        </div>
+                        
+                        <div class="distance-section">
+                            <button type="button" id="calculateDistance" class="btn btn-secondary">Mesafe Hesapla</button>
+                            <div id="distanceResult" class="distance-result"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Veli Bilgileri</h2>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="parentName">Veli Adı Soyadı *</label>
+                                <input type="text" id="parentName" name="parentName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="parentPhone">Telefon Numarası *</label>
+                                <input type="tel" id="parentPhone" name="parentPhone" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="parentEmail">E-posta Adresi</label>
+                            <input type="email" id="parentEmail" name="parentEmail">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2>Ek Bilgiler</h2>
+                        <div class="form-group">
+                            <label for="additionalMessage">İletmek İstediğiniz Mesaj</label>
+                            <textarea id="additionalMessage" name="additionalMessage" rows="4" placeholder="Özel durumlar, sağlık sorunları, özel istekler vb..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-section agreements">
+                        <h2>Sözleşme ve Onaylar</h2>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="contractAgreement" name="contractAgreement" required>
+                            <label for="contractAgreement">
+                                Taşımacılık sözleşmesini okudum ve kabul ediyorum *
+                                <button type="button" id="showContract" class="link-button">Sözleşmeyi Görüntüle</button>
+                            </label>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="kvkkAgreement" name="kvkkAgreement" required>
+                            <label for="kvkkAgreement">
+                                KVKK aydınlatma metnini okudum ve kişisel verilerimin işlenmesini kabul ediyorum *
+                                <button type="button" id="showKVKK" class="link-button">KVKK Metnini Görüntüle</button>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-submit">
+                        <button type="submit" class="btn btn-primary">Kayıt Formunu Gönder</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Contract Modal -->
+    <div id="contractModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Taşımacılık Sözleşmesi</h2>
+                <span class="close" id="closeContractModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>KARTU TURİZM TAŞIMACILIK SÖZLEŞMESİ</h3>
+                
+                <h4>Madde 1 - Hizmet Tanımı</h4>
+                <p>Kartu Turizm, öğrencinin belirtilen adresinden alınarak okula götürülmesi ve okul çıkışında tekrar eve bırakılması hizmetini kapsar.</p>
+
+                <h4>Madde 2 - Ücret ve Ödeme</h4>
+                <ul>
+                    <li>Ücretlendirme yıllık olarak belirlenir</li>
+                    <li>Ödeme 9 taksit halinde yapılabilir</li>
+                    <li>Geç ödenen taksitlerde %5 gecikme faizi uygulanır</li>
+                    <li>Erken ödeme yapanlara %10 indirim uygulanır</li>
+                    <li>İkinci çocuk için %15 indirim uygulanır</li>
+                </ul>
+
+                <h4>Madde 3 - Hizmet Saatleri</h4>
+                <p>Servis saatleri okul programına göre belirlenir. Değişiklik durumunda veliler önceden bilgilendirilir.</p>
+
+                <h4>Madde 4 - Güvenlik ve Sorumluluk</h4>
+                <ul>
+                    <li>Tüm araçlarımız kasko ve trafik sigortası ile kaplıdır</li>
+                    <li>Öğrenciler için ek sigorta kapsamı mevcuttur</li>
+                    <li>Güvenlik kemeri kullanımı zorunludur</li>
+                    <li>Şoförlerimiz düzenli sağlık kontrolünden geçer</li>
+                </ul>
+
+                <h4>Madde 5 - İptal ve İade</h4>
+                <p>Hizmet başlamadan 15 gün öncesine kadar yapılan iptallerde %100 iade yapılır. Sonrasında yapılan iptallerde iade şartları görüşülerek belirlenir.</p>
+
+                <h4>Madde 6 - Uyuşmazlık Çözümü</h4>
+                <p>Bu sözleşmeden doğan uyuşmazlıklar İstanbul Mahkemeleri'nde çözülür.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- KVKK Modal -->
+    <div id="kvkkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>KVKK Aydınlatma Metni</h2>
+                <span class="close" id="closeKVKKModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>KİŞİSEL VERİLERİN KORUNMASI AYDINLATMA METNİ</h3>
+                
+                <h4>1. Veri Sorumlusu</h4>
+                <p>Kişisel verileriniz, Kartu Turizm tarafından, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında işlenmektedir.</p>
+
+                <h4>2. Kişisel Verilerin Hangi Amaçla İşlendiği</h4>
+                <ul>
+                    <li>Taşımacılık hizmeti sunulması</li>
+                    <li>Güvenlik tedbirlerinin alınması</li>
+                    <li>Acil durumlarda iletişim kurulması</li>
+                    <li>Yasal yükümlülüklerin yerine getirilmesi</li>
+                    <li>Hizmet kalitesinin artırılması</li>
+                </ul>
+
+                <h4>3. Toplanan Kişisel Veriler</h4>
+                <ul>
+                    <li>Kimlik bilgileri (ad, soyad, yaş)</li>
+                    <li>İletişim bilgileri (telefon, e-posta, adres)</li>
+                    <li>Öğrenci bilgileri (okul, sınıf)</li>
+                    <li>Sağlık bilgileri (varsa özel durumlar)</li>
+                </ul>
+
+                <h4>4. Kişisel Verilerin Aktarılması</h4>
+                <p>Kişisel verileriniz, hizmetin gereği olarak okul yönetimi, acil durum birimleri ve sigorta şirketleri ile paylaşılabilir.</p>
+
+                <h4>5. Veri Sahibinin Hakları</h4>
+                <p>KVKK kapsamında aşağıdaki haklarınız bulunmaktadır:</p>
+                <ul>
+                    <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
+                    <li>İşlenen kişisel verileriniz hakkında bilgi talep etme</li>
+                    <li>Kişisel verilerin düzeltilmesini isteme</li>
+                    <li>Kişisel verilerin silinmesini isteme</li>
+                    <li>İşleme itiraz etme</li>
+                </ul>
+
+                <h4>6. İletişim</h4>
+                <p>KVKK kapsamındaki taleplerinizi info@kartuturizm.com adresine iletebilirsiniz.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Kartu Turizm</h3>
+                    <p>Güvenli ve kaliteli taşımacılık hizmetleri.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Hızlı Bağlantılar</h4>
+                    <ul>
+                        <li><a href="hakkimizda.html">Hakkımızda</a></li>
+                        <li><a href="hizmetler.html">Hizmetler</a></li>
+                        <li><a href="ogrenci-kayit.html">Öğrenci Kaydı</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>İletişim</h4>
+                    <p>📞 0212 XXX XX XX</p>
+                    <p>📧 info@kartuturizm.com</p>
+                    <p>📍 İstanbul, Türkiye</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Kartu Turizm. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

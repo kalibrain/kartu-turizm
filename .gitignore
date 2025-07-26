@@ -1,0 +1,33 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# API Keys (if storing locally)
+config.js
+secrets.js
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Node modules (if using build tools)
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Cache files
+.cache/
+
+# Log files
+*.log
+
+# Temporary files
+tmp/
+temp/ 

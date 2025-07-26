@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İletişim - Kartu Turizm</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Kartu Turizm iletişim bilgileri">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <h2>Kartu Turizm</h2>
+                </div>
+                <div class="nav-menu" id="nav-menu">
+                    <a href="index.html" class="nav-link">Ana Sayfa</a>
+                    <a href="hakkimizda.html" class="nav-link">Hakkımızda</a>
+                    <a href="hizmetler.html" class="nav-link">Hizmetler</a>
+                    <a href="ogrenci-kayit.html" class="nav-link">Öğrenci Kaydı</a>
+                    <a href="iletisim.html" class="nav-link active">İletişim</a>
+                </div>
+                <div class="nav-toggle" id="nav-toggle">
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                    <span class="bar"></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <div class="container">
+                <h1>İletişim</h1>
+                <p>Bizimle iletişime geçin</p>
+            </div>
+        </section>
+
+        <section class="contact-section">
+            <div class="container">
+                <div class="contact-grid">
+                    <div class="contact-info">
+                        <h2>İletişim Bilgileri</h2>
+                        
+                        <div class="contact-item">
+                            <div class="contact-icon">📞</div>
+                            <div class="contact-details">
+                                <h4>Telefon</h4>
+                                <p>0212 XXX XX XX</p>
+                                <p>0535 XXX XX XX</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">📧</div>
+                            <div class="contact-details">
+                                <h4>E-posta</h4>
+                                <p>info@kartuturizm.com</p>
+                                <p>kayit@kartuturizm.com</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">📍</div>
+                            <div class="contact-details">
+                                <h4>Adres</h4>
+                                <p>Merkez Mahallesi<br>
+                                Atatürk Caddesi No: 123<br>
+                                34000 İstanbul</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <div class="contact-icon">🕒</div>
+                            <div class="contact-details">
+                                <h4>Çalışma Saatleri</h4>
+                                <p>Pazartesi - Cuma: 08:00 - 18:00</p>
+                                <p>Cumartesi: 09:00 - 15:00</p>
+                                <p>Pazar: Kapalı</p>
+                            </div>
+                        </div>
+
+                        <div class="emergency-contact">
+                            <h4>🚨 Acil Durum Hattı</h4>
+                            <p class="emergency-number">0555 XXX XX XX</p>
+                            <small>24 saat ulaşılabilir</small>
+                        </div>
+                    </div>
+
+                    <div class="contact-form-section">
+                        <h2>Bize Mesaj Gönderin</h2>
+                        <form id="contactForm" class="contact-form">
+                            <div class="form-group">
+                                <label for="contactName">Ad Soyad *</label>
+                                <input type="text" id="contactName" name="contactName" required>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactEmail">E-posta *</label>
+                                    <input type="email" id="contactEmail" name="contactEmail" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactPhone">Telefon</label>
+                                    <input type="tel" id="contactPhone" name="contactPhone">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactSubject">Konu *</label>
+                                <select id="contactSubject" name="contactSubject" required>
+                                    <option value="">Konu seçiniz</option>
+                                    <option value="ogrenci-kayit">Öğrenci Kaydı</option>
+                                    <option value="fiyat-bilgisi">Fiyat Bilgisi</option>
+                                    <option value="hizmet-bilgisi">Hizmet Bilgisi</option>
+                                    <option value="sikayet">Şikayet</option>
+                                    <option value="oneri">Öneri</option>
+                                    <option value="diger">Diğer</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contactMessage">Mesajınız *</label>
+                                <textarea id="contactMessage" name="contactMessage" rows="5" required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Mesaj Gönder</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="faq-section">
+                    <h2>Sık Sorulan Sorular</h2>
+                    <div class="faq-grid">
+                        <div class="faq-item">
+                            <h4>Kayıt için hangi belgeler gerekli?</h4>
+                            <p>Öğrenci kimlik fotokopisi, veli kimlik fotokopisi ve okul kaydını gösteren belge gerekmektedir.</p>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Ücret nasıl ödenir?</h4>
+                            <p>Yıllık ücret tek seferde veya 9 taksit halinde ödenebilir. Kredi kartı, havale ve nakit ödeme kabul edilir.</p>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Servisleri nasıl takip edebilirim?</h4>
+                            <p>GPS takip sistemi ile servisin konumunu anlık olarak WhatsApp üzerinden takip edebilirsiniz.</p>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Hastalık durumunda ne yapmalıyım?</h4>
+                            <p>Öğrenciniz hasta olduğunda lütfen sabah 07:30'a kadar bizi arayarak bilgilendirin.</p>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>Tatil günlerinde servis var mı?</h4>
+                            <p>Okul tatillerinde ve resmi tatillerde servis hizmeti verilmez. Özel durumlar için görüşülebilir.</p>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <h4>İptal durumunda ücret iade edilir mi?</h4>
+                            <p>Hizmet başlamadan 15 gün öncesine kadar yapılan iptallerde tam iade yapılır.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Kartu Turizm</h3>
+                    <p>Güvenli ve kaliteli taşımacılık hizmetleri.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Hızlı Bağlantılar</h4>
+                    <ul>
+                        <li><a href="hakkimizda.html">Hakkımızda</a></li>
+                        <li><a href="hizmetler.html">Hizmetler</a></li>
+                        <li><a href="ogrenci-kayit.html">Öğrenci Kaydı</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>İletişim</h4>
+                    <p>📞 0212 XXX XX XX</p>
+                    <p>📧 info@kartuturizm.com</p>
+                    <p>📍 İstanbul, Türkiye</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Kartu Turizm. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
