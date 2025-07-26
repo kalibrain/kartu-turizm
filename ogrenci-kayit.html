@@ -33,18 +33,23 @@
     </header>
 
     <main>
-        <section class="page-header">
-            <div class="container">
-                <h1>Öğrenci Kaydı</h1>
-                <p>Güvenli taşımacılık hizmeti için kayıt formu</p>
-            </div>
-        </section>
 
         <section class="registration-form">
             <div class="container">
+                <div class="info-notice">
+                    <div class="info-header" onclick="toggleInfoNotice()">
+                        <span class="info-icon">ℹ️</span>
+                        <span class="info-title">Mesafe ve Ücret Hesaplama Bilgilendirmesi</span>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="info-content" id="infoContent" style="display: none;">
+                        <p>Bu sayfada, Google Maps API ile okul ile öğrenci konutu arasındaki mesafe otomatik olarak hesaplanır ve bu mesafeye dayanarak ortalama aylık ücret tahmini sunulur. Sunulan fiyatlar, 23 Ağustos 2025 tarihli ve 2025/62 sayılı UKOME kararıyla belirlenen tarifelere göre sadece bilgilendirme amaçlıdır.</p>
+                        <p>Adres bilgilerinin eksik, hatalı girilmesi veya sistemsel bir aksaklık olursa, hesaplanan ücretler gerçeği tam yansıtmayabilir. Bu bölüm, öğrencilerimizin kayıt işlemlerini hızlıca tamamlamalarını ve velilerimize gerçeğe en yakın maliyet bilgilerini iletebilmeyi sağlamak için hazırlanmıştır.</p>
+                    </div>
+                </div>
                 <form id="studentRegistrationForm" class="form">
                     <div class="form-section">
-                        <h2>🎓 Öğrenci Bilgileri</h2>
+                        <h2>🎓 Öğrenci ve Okul Bilgileri</h2>
                         <div class="form-group">
                             <label for="studentName">Öğrenci Adı Soyadı *</label>
                             <input type="text" id="studentName" name="studentName" required>
@@ -71,21 +76,25 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="studentAge">Yaşı *</label>
-                                <input type="number" id="studentAge" name="studentAge" min="3" max="18" required>
+                                <label for="studentBranch">Şubesi *</label>
+                                <select id="studentBranch" name="studentBranch" required>
+                                    <option value="">Seçiniz</option>
+                                    <option value="A">A Şubesi</option>
+                                    <option value="B">B Şubesi</option>
+                                    <option value="C">C Şubesi</option>
+                                    <option value="D">D Şubesi</option>
+                                    <option value="E">E Şubesi</option>
+                                    <option value="F">F Şubesi</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="form-section">
-                        <h2>🏫 Okul Bilgileri</h2>
+                        
                         <div class="form-group">
                             <label for="schoolAddress">Okul Adresi *</label>
                             <select id="schoolAddress" name="schoolAddress" required>
                                 <option value="">Okulunuzu seçiniz</option>
-                                <option value="eryaman-turkkent-ilkokulu">Eryaman Türkkent İlkokulu - Eryaman, Dil Devrimi Cd.</option>
-                                <option value="eryaman-kooperatifler-ortaokulu">Eryaman Kooperatifler Birliği Ortaokulu - Eryaman Mah</option>
-                                <option value="eryaman-basak-anaokulu">Eryaman Başak Anaokulu - Eryaman, 284. Sk.</option>
+                                <option value="sehit-ender-alper-ilkokulu">Şehit Ender Alper İlkokulu - Topçu, Ayyıldız, Şehit Ender Alper Sokak, 06796 Etimesgut/Ankara</option>
+                                <option value="susuz-sehit-tamer-kilic-ortaokulu">Susuz Şehit Tamer Kılıç Ortaokulu - Susuz Mahallesi Küme Evleri No 424 Yenimahalle/ANKARA</option>
                             </select>
                         </div>
                     </div>
@@ -122,28 +131,42 @@
                             <textarea id="addressNotes" name="addressNotes" rows="2" placeholder="Ek adres bilgileri, tarif, özel notlar..."></textarea>
                         </div>
                         
-                        <div class="distance-section">
-                            <button type="button" id="calculateDistance" class="btn btn-secondary">Mesafe Hesapla</button>
-                            <div id="distanceResult" class="distance-result"></div>
-                        </div>
+
                     </div>
 
                     <div class="form-section">
                         <h2>👨‍👩‍👧‍👦 Veli Bilgileri</h2>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="parentName">Veli Adı Soyadı *</label>
-                                <input type="text" id="parentName" name="parentName" required>
+                                <h3>👩 Anne Bilgileri</h3>
+                                <div class="form-group">
+                                    <label for="motherName">Anne Adı Soyadı *</label>
+                                    <input type="text" id="motherName" name="motherName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="motherPhone">Anne Telefon Numarası *</label>
+                                    <input type="tel" id="motherPhone" name="motherPhone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="motherEmail">Anne E-posta Adresi</label>
+                                    <input type="email" id="motherEmail" name="motherEmail">
+                                </div>
                             </div>
                             <div class="form-group">
-                                <label for="parentPhone">Telefon Numarası *</label>
-                                <input type="tel" id="parentPhone" name="parentPhone" required>
+                                <h3>👨 Baba Bilgileri</h3>
+                                <div class="form-group">
+                                    <label for="fatherName">Baba Adı Soyadı *</label>
+                                    <input type="text" id="fatherName" name="fatherName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="fatherPhone">Baba Telefon Numarası *</label>
+                                    <input type="tel" id="fatherPhone" name="fatherPhone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="fatherEmail">Baba E-posta Adresi</label>
+                                    <input type="email" id="fatherEmail" name="fatherEmail">
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="parentEmail">E-posta Adresi</label>
-                            <input type="email" id="parentEmail" name="parentEmail">
                         </div>
                     </div>
 
@@ -201,8 +224,6 @@
                     <li>Ücretlendirme yıllık olarak belirlenir</li>
                     <li>Ödeme 9 taksit halinde yapılabilir</li>
                     <li>Geç ödenen taksitlerde %5 gecikme faizi uygulanır</li>
-                    <li>Erken ödeme yapanlara %10 indirim uygulanır</li>
-                    <li>İkinci çocuk için %15 indirim uygulanır</li>
                 </ul>
 
                 <h4>Madde 3 - Hizmet Saatleri</h4>

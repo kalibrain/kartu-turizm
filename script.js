@@ -3,15 +3,41 @@ let autocomplete;
 let selectedStudentCoordinates = null;
 let selectedSchoolCoordinates = null;
 
-// School addresses for geocoding
+// School addresses with coordinates
 const schoolAddresses = {
-    'eryaman-turkkent-ilkokulu': 'Eryaman, Dil Devrimi Cd. Eryaman Evleri, 06824 Etimesgut/Ankara, Türkiye',
-    'eryaman-kooperatifler-ortaokulu': 'Eryaman Mah Dildevrimi Cad, Eryaman, 287. Sk. No:4, 06793 Etimesgut/Ankara, Türkiye',
-    'eryaman-basak-anaokulu': 'Eryaman, 284. Sk. No:4, 06824 Etimesgut/Ankara, Türkiye'
+    'sehit-ender-alper-ilkokulu': 'Topçu, Ayyıldız, Şehit Ender Alper Sokak, 06796 Etimesgut/Ankara, Türkiye',
+    'susuz-sehit-tamer-kilic-ortaokulu': 'Susuz Mahallesi Küme Evleri No 424 Yenimahalle/ANKARA, Türkiye'
+};
+
+// Hardcoded school coordinates to avoid API calls
+const schoolCoordinates = {
+    'sehit-ender-alper-ilkokulu': {
+        lat: 39.93030023821543,
+        lng: 32.620627004203506
+    },
+    'susuz-sehit-tamer-kilic-ortaokulu': {
+        lat: 40.01886312124337,
+        lng: 32.65188141578048
+    }
 };
 
 // Cache for school coordinates to avoid repeated API calls
 let schoolCoordinatesCache = {};
+
+// Price calculation based on distance
+function calculatePriceByDistance(distance) {
+    if (distance <= 3) {
+        return 3500;
+    } else if (distance <= 6) {
+        return 3800;
+    } else if (distance <= 10) {
+        return 4100;
+    } else if (distance <= 15) {
+        return 4500;
+    } else {
+        return null; // No price for distances over 15km
+    }
+}
 
 // Google Maps Autocomplete Initialization
 function initAutocomplete() {
@@ -110,47 +136,23 @@ function handleSchoolSelection() {
     });
 }
 
-// Get school coordinates using Geocoding API
+// Get school coordinates using hardcoded values
 async function getSchoolCoordinates(schoolKey) {
     // Check cache first
     if (schoolCoordinatesCache[schoolKey]) {
         return schoolCoordinatesCache[schoolKey];
     }
 
-    const address = schoolAddresses[schoolKey];
-    if (!address) {
-        throw new Error('School address not found');
+    // Use hardcoded coordinates instead of API calls
+    const coordinates = schoolCoordinates[schoolKey];
+    if (!coordinates) {
+        throw new Error('School coordinates not found');
     }
 
-    try {
-        const geocoder = new google.maps.Geocoder();
-        
-        return new Promise((resolve, reject) => {
-            geocoder.geocode(
-                { 
-                    address: address,
-                    region: 'TR',
-                    componentRestrictions: { country: 'TR' }
-                }, 
-                (results, status) => {
-                    if (status === 'OK' && results[0]) {
-                        const coordinates = {
-                            lat: results[0].geometry.location.lat(),
-                            lng: results[0].geometry.location.lng()
-                        };
-                        
-                        // Cache the result
-                        schoolCoordinatesCache[schoolKey] = coordinates;
-                        resolve(coordinates);
-                    } else {
-                        reject(new Error(`Geocoding failed: ${status}`));
-                    }
-                }
-            );
-        });
-    } catch (error) {
-        throw new Error(`Geocoding error: ${error.message}`);
-    }
+    // Cache the result
+    schoolCoordinatesCache[schoolKey] = coordinates;
+    
+    return Promise.resolve(coordinates);
 }
 
 // Auto-calculate distance when both addresses are available
@@ -180,12 +182,10 @@ function calculateDrivingDistance(studentCoords, schoolCoords) {
             
             if (result.status === 'OK') {
                 // Extract distance in kilometers
-                const distanceText = result.distance.text;
                 const distanceValue = result.distance.value / 1000; // Convert meters to km
-                const durationText = result.duration.text;
                 
                 console.log('Driving distance calculated:', distanceValue, 'km');
-                updateDistanceDisplay(distanceValue, durationText);
+                updateDistanceDisplay(distanceValue);
             } else {
                 console.error('Distance calculation failed:', result.status);
                 // Fallback to straight-line distance
@@ -193,7 +193,7 @@ function calculateDrivingDistance(studentCoords, schoolCoords) {
                     studentCoords.lat, studentCoords.lng,
                     schoolCoords.lat, schoolCoords.lng
                 );
-                updateDistanceDisplay(straightDistance, null, true);
+                updateDistanceDisplay(straightDistance, true);
             }
         } else {
             console.error('Distance Matrix API failed:', status);
@@ -202,7 +202,7 @@ function calculateDrivingDistance(studentCoords, schoolCoords) {
                 studentCoords.lat, studentCoords.lng,
                 schoolCoords.lat, schoolCoords.lng
             );
-            updateDistanceDisplay(straightDistance, null, true);
+            updateDistanceDisplay(straightDistance, true);
         }
     });
 }
@@ -315,7 +315,7 @@ function updateApartmentDetailsInDisplay(buildingName, apartmentNumber, addressN
 }
 
 // Update distance display in address details
-function updateDistanceDisplay(distance, duration = null, isStraightLine = false) {
+function updateDistanceDisplay(distance, isStraightLine = false) {
     const addressDetails = document.getElementById('addressDetails');
     
     if (!addressDetails) return;
@@ -337,28 +337,17 @@ function updateDistanceDisplay(distance, duration = null, isStraightLine = false
         if (isStraightLine) {
             distanceLabel = 'Düz Mesafe:';
             additionalInfo = ' <small>(Kuş uçuşu)</small>';
-        } else if (duration) {
-            additionalInfo = ` <small>(~${duration})</small>`;
         }
         
-        distanceInfo.innerHTML = `<strong>${distanceLabel}</strong> <span class="distance-value">${distance.toFixed(1)} km</span>${additionalInfo}`;
-        addressDetails.appendChild(distanceInfo);
-
-        // Also update the main distance result section
-        const distanceResult = document.getElementById('distanceResult');
-        if (distanceResult) {
-            let resultLabel = 'Ev ile okul arası araç mesafesi';
-            if (isStraightLine) {
-                resultLabel = 'Ev ile okul arası düz mesafe';
-            }
-            
-            distanceResult.innerHTML = `
-                <div class="distance-value">${distance.toFixed(1)} km</div>
-                <div class="distance-label">${resultLabel}</div>
-                ${duration ? `<div class="duration-info">Yaklaşık süre: ${duration}</div>` : ''}
-            `;
-            distanceResult.classList.add('show');
+        // Calculate price based on distance
+        const price = calculatePriceByDistance(distance);
+        let priceInfo = '';
+        if (price) {
+            priceInfo = `<br><strong>Tahmini Aylık Ücret:</strong> <span class="price-value">${price.toLocaleString('tr-TR')} TL</span>`;
         }
+        
+        distanceInfo.innerHTML = `<strong>${distanceLabel}</strong> <span class="distance-value">${distance.toFixed(1)} km</span>${additionalInfo}${priceInfo}`;
+        addressDetails.appendChild(distanceInfo);
     }
 }
 
@@ -401,32 +390,21 @@ function hideAddressError() {
     }
 }
 
-// Enhanced distance calculation
-function calculateRealDistance() {
-    // This function is now mainly for manual calculation button
-    // Auto-calculation happens in autoCalculateDistance()
+// Toggle info notice function
+function toggleInfoNotice() {
+    const infoContent = document.getElementById('infoContent');
+    const toggleIcon = document.querySelector('.toggle-icon');
     
-    if (!selectedStudentCoordinates) {
-        showAddressError('Önce öğrenci adresini seçin.');
-        return;
-    }
-
-    const schoolSelect = document.getElementById('schoolAddress');
-    const selectedSchoolValue = schoolSelect.value;
-    
-    if (!selectedSchoolValue) {
-        alert('Lütfen önce okul seçin.');
-        return;
-    }
-
-    // If coordinates are already available, just calculate
-    if (selectedSchoolCoordinates) {
-        autoCalculateDistance();
+    if (infoContent.style.display === 'none') {
+        infoContent.style.display = 'block';
+        toggleIcon.textContent = '▲';
     } else {
-        // Get coordinates and then calculate
-        handleSchoolSelection();
+        infoContent.style.display = 'none';
+        toggleIcon.textContent = '▼';
     }
 }
+
+
 
 // Haversine formula for distance calculation
 function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
@@ -494,14 +472,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Registration Form Functions
 function initializeRegistrationForm() {
     const registrationForm = document.getElementById('studentRegistrationForm');
-    const calculateDistanceBtn = document.getElementById('calculateDistance');
     
     if (registrationForm) {
         registrationForm.addEventListener('submit', handleRegistrationSubmit);
-    }
-    
-    if (calculateDistanceBtn) {
-        calculateDistanceBtn.addEventListener('click', calculateRealDistance);
     }
 
     // Add auto-formatting for apartment number field
@@ -525,7 +498,7 @@ function collectFormData() {
         // Student Info
         studentName: document.getElementById('studentName')?.value,
         studentGrade: document.getElementById('studentGrade')?.value,
-        studentAge: document.getElementById('studentAge')?.value,
+        studentBranch: document.getElementById('studentBranch')?.value,
         
         // School Info
         schoolAddress: document.getElementById('schoolAddress')?.value,
@@ -539,15 +512,19 @@ function collectFormData() {
         coordinates: selectedStudentCoordinates,
         
         // Parent Info
-        parentName: document.getElementById('parentName')?.value,
-        parentPhone: document.getElementById('parentPhone')?.value,
-        parentEmail: document.getElementById('parentEmail')?.value,
+        motherName: document.getElementById('motherName')?.value,
+        motherPhone: document.getElementById('motherPhone')?.value,
+        motherEmail: document.getElementById('motherEmail')?.value,
+        fatherName: document.getElementById('fatherName')?.value,
+        fatherPhone: document.getElementById('fatherPhone')?.value,
+        fatherEmail: document.getElementById('fatherEmail')?.value,
         
         // Additional Info
         additionalMessage: document.getElementById('additionalMessage')?.value,
         
         // Distance Info
-        calculatedDistance: getCalculatedDistance()
+        calculatedDistance: getCalculatedDistance(),
+        estimatedPrice: getEstimatedPrice()
     };
     
     return formData;
@@ -579,8 +556,14 @@ function generateFullAddress() {
 
 // Get calculated distance from the UI
 function getCalculatedDistance() {
-    const distanceElement = document.querySelector('.distance-result .distance-value');
+    const distanceElement = document.querySelector('.distance-info .distance-value');
     return distanceElement ? distanceElement.textContent : null;
+}
+
+// Get estimated price from the UI
+function getEstimatedPrice() {
+    const priceElement = document.querySelector('.distance-info .price-value');
+    return priceElement ? priceElement.textContent : null;
 }
 
 // Enhanced form validation including apartment details
@@ -594,12 +577,14 @@ function validateRegistrationForm() {
     const requiredFields = [
         'studentName',
         'studentGrade', 
-        'studentAge',
+        'studentBranch',
         'schoolAddress',
         'studentAddress',
         'apartmentNumber', // New required field
-        'parentName',
-        'parentPhone'
+        'motherName',
+        'motherPhone',
+        'fatherName',
+        'fatherPhone'
     ];
     
     requiredFields.forEach(fieldName => {
@@ -620,17 +605,31 @@ function validateRegistrationForm() {
         }
     }
     
-    // Phone number validation  
-    const phoneField = document.getElementById('parentPhone');
-    if (phoneField && phoneField.value && !validatePhoneNumber(phoneField.value)) {
-        showFieldError(phoneField, 'Geçerli bir telefon numarası giriniz.');
+    // Phone number validation for mother
+    const motherPhoneField = document.getElementById('motherPhone');
+    if (motherPhoneField && motherPhoneField.value && !validatePhoneNumber(motherPhoneField.value)) {
+        showFieldError(motherPhoneField, 'Geçerli bir telefon numarası giriniz.');
         isValid = false;
     }
     
-    // Email validation
-    const emailField = document.getElementById('parentEmail');
-    if (emailField && emailField.value && !validateEmail(emailField.value)) {
-        showFieldError(emailField, 'Geçerli bir e-posta adresi giriniz.');
+    // Phone number validation for father
+    const fatherPhoneField = document.getElementById('fatherPhone');
+    if (fatherPhoneField && fatherPhoneField.value && !validatePhoneNumber(fatherPhoneField.value)) {
+        showFieldError(fatherPhoneField, 'Geçerli bir telefon numarası giriniz.');
+        isValid = false;
+    }
+    
+    // Email validation for mother
+    const motherEmailField = document.getElementById('motherEmail');
+    if (motherEmailField && motherEmailField.value && !validateEmail(motherEmailField.value)) {
+        showFieldError(motherEmailField, 'Geçerli bir e-posta adresi giriniz.');
+        isValid = false;
+    }
+    
+    // Email validation for father
+    const fatherEmailField = document.getElementById('fatherEmail');
+    if (fatherEmailField && fatherEmailField.value && !validateEmail(fatherEmailField.value)) {
+        showFieldError(fatherEmailField, 'Geçerli bir e-posta adresi giriniz.');
         isValid = false;
     }
     
@@ -681,7 +680,6 @@ function handleRegistrationSubmit(e) {
         
         // Reset form
         e.target.reset();
-        hideDistanceResult();
     }
 }
 
@@ -694,7 +692,7 @@ KARTU TURİZM ÖĞRENCİ KAYIT FORMU
 Öğrenci Bilgileri:
 Ad Soyad: ${formData.studentName}
 Sınıf: ${formData.studentGrade}
-Yaş: ${formData.studentAge}
+Şube: ${formData.studentBranch}
 
 Okul Bilgileri:
 Okul: ${formData.schoolAddress}
@@ -706,11 +704,17 @@ Daire/Blok: ${formData.apartmentNumber}
 ${formData.addressNotes ? `Adres Notları: ${formData.addressNotes}` : ''}
 Tam Adres: ${formData.fullAddress}
 ${formData.calculatedDistance ? `Mesafe: ${formData.calculatedDistance}` : ''}
+${formData.estimatedPrice ? `Tahmini Aylık Ücret: ${formData.estimatedPrice}` : ''}
 
-Veli Bilgileri:
-Ad Soyad: ${formData.parentName}
-Telefon: ${formData.parentPhone}
-${formData.parentEmail ? `E-posta: ${formData.parentEmail}` : ''}
+Anne Bilgileri:
+Ad Soyad: ${formData.motherName}
+Telefon: ${formData.motherPhone}
+${formData.motherEmail ? `E-posta: ${formData.motherEmail}` : ''}
+
+Baba Bilgileri:
+Ad Soyad: ${formData.fatherName}
+Telefon: ${formData.fatherPhone}
+${formData.fatherEmail ? `E-posta: ${formData.fatherEmail}` : ''}
 
 ${formData.additionalMessage ? `Ek Mesaj: ${formData.additionalMessage}` : ''}
 
@@ -725,51 +729,11 @@ Kartu Turizm - ${new Date().toLocaleDateString('tr-TR')}
     window.open(mailtoLink);
 }
 
-// Distance Calculation Function
-function handleDistanceCalculation() {
-    const schoolAddress = document.getElementById('schoolAddress').value;
-    const studentAddress = document.getElementById('studentAddress').value;
-    const distanceResult = document.getElementById('distanceResult');
-    const calculateBtn = document.getElementById('calculateDistance');
-    
-    if (!schoolAddress || !studentAddress.trim()) {
-        showFieldError(document.getElementById('studentAddress'), 'Okul ve ev adresi seçilmelidir.');
-        return;
-    }
-    
-    // Show loading
-    calculateBtn.innerHTML = '<span class="loading"></span> Hesaplanıyor...';
-    calculateBtn.disabled = true;
-    
-    // Mock distance calculation (as requested)
-    hesaplaMesafe(schoolAddress, studentAddress)
-        .then(distance => {
-            distanceResult.innerHTML = `Mesafe: ${distance}`;
-            distanceResult.classList.add('show');
-        })
-        .catch(error => {
-            distanceResult.innerHTML = 'Mesafe hesaplanamadı. Lütfen tekrar deneyin.';
-            distanceResult.classList.add('show');
-            console.error('Distance calculation error:', error);
-        })
-        .finally(() => {
-            calculateBtn.innerHTML = 'Mesafe Hesapla';
-            calculateBtn.disabled = false;
-        });
-}
 
-// Mock distance calculation function (as specified in requirements)
-function hesaplaMesafe(okulAdres, ogrenciAdres) {
-    // Mock: 3.2 km döndür
-    return Promise.resolve("3.2 km");
-}
 
-function hideDistanceResult() {
-    const distanceResult = document.getElementById('distanceResult');
-    if (distanceResult) {
-        distanceResult.classList.remove('show');
-    }
-}
+
+
+
 
 // Contact Form Functions
 function initializeContactForm() {
