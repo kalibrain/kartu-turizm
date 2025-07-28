@@ -358,6 +358,15 @@ function updateDistanceDisplay(distance, isStraightLine = false) {
         if (price) {
             distanceInfo.innerHTML = `<strong>Tahmini Aylık Ücret:</strong> <span class="price-value">${price.toLocaleString('tr-TR')} TL</span>`;
             addressDetails.appendChild(distanceInfo);
+            
+            // Show contract section and update yearly fee
+            showContractSection(price);
+        } else if (distance > 15) {
+            distanceInfo.innerHTML = `<strong>Mesafe:</strong> <span class="distance-value">${distance.toFixed(1)} km</span><br><small style="color: #dc3545;">15 km üzeri mesafeler için lütfen iletişime geçin.</small>`;
+            addressDetails.appendChild(distanceInfo);
+            
+            // Hide contract section for distances over 15km
+            hideContractSection();
         }
     }
 }
@@ -571,6 +580,64 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
+}
+
+// Show contract section and update yearly fee
+function showContractSection(monthlyPrice) {
+    const contractSection = document.querySelector('.form-section.agreements');
+    
+    if (contractSection) {
+        // Show the contract section with animation
+        contractSection.classList.add('show');
+        
+        // Calculate yearly fee (monthly price x 9)
+        const yearlyFee = monthlyPrice * 9;
+        
+        // Update contract text with pricing information
+        updateContractText(monthlyPrice, yearlyFee);
+    }
+}
+
+// Hide contract section
+function hideContractSection() {
+    const contractSection = document.querySelector('.form-section.agreements');
+    
+    if (contractSection) {
+        contractSection.classList.remove('show');
+    }
+}
+
+// Update contract text with current pricing
+function updateContractText(monthlyPrice, yearlyFee) {
+    // Find the contract modal body
+    const contractModalBody = document.querySelector('#contractModal .modal-body');
+    
+    if (contractModalBody) {
+        // Check if pricing info already exists
+        let pricingSection = contractModalBody.querySelector('.pricing-info-section');
+        
+        if (!pricingSection) {
+            // Create new pricing section
+            pricingSection = document.createElement('div');
+            pricingSection.className = 'pricing-info-section';
+            
+            // Insert after the second paragraph (after service definition)
+            const secondParagraph = contractModalBody.querySelector('h4');
+            if (secondParagraph) {
+                secondParagraph.parentNode.insertBefore(pricingSection, secondParagraph);
+            }
+        }
+        
+        // Update pricing content
+        pricingSection.innerHTML = `
+            <div style="background: #e8f5e8; border: 2px solid #28a745; border-radius: 8px; padding: 15px; margin: 20px 0;">
+                <h4 style="color: #155724; margin-bottom: 10px;">💰 Hesaplanan Ücret Bilgileri</h4>
+                <p style="margin: 5px 0; color: #155724;"><strong>Aylık Ücret:</strong> ${monthlyPrice.toLocaleString('tr-TR')} TL</p>
+                <p style="margin: 5px 0; color: #155724;"><strong>Yıllık Ücret (9 Ay):</strong> ${yearlyFee.toLocaleString('tr-TR')} TL</p>
+                <p style="margin: 5px 0; font-size: 0.9em; color: #666;">Bu ücretler seçtiğiniz adres ve okul arasındaki mesafeye göre hesaplanmıştır.</p>
+            </div>
+        `;
+    }
 }
 
 // FAQ Accordion Toggle
@@ -792,17 +859,11 @@ function validateRegistrationForm() {
         isValid = false;
     }
     
-    // Agreement checkboxes validation
+    // Agreement checkbox validation
     const contractCheckbox = document.getElementById('contractAgreement');
-    const kvkkCheckbox = document.getElementById('kvkkAgreement');
     
     if (!contractCheckbox || !contractCheckbox.checked) {
         showFieldError(contractCheckbox, 'Taşımacılık sözleşmesini kabul etmeniz gerekiyor.');
-        isValid = false;
-    }
-    
-    if (!kvkkCheckbox || !kvkkCheckbox.checked) {
-        showFieldError(kvkkCheckbox, 'KVKK aydınlatma metnini kabul etmeniz gerekiyor.');
         isValid = false;
     }
     
@@ -1073,11 +1134,8 @@ function validateContactForm() {
 // Modal Functions
 function initializeModals() {
     const showContractBtn = document.getElementById('showContract');
-    const showKVKKBtn = document.getElementById('showKVKK');
     const contractModal = document.getElementById('contractModal');
-    const kvkkModal = document.getElementById('kvkkModal');
     const closeContractModal = document.getElementById('closeContractModal');
-    const closeKVKKModal = document.getElementById('closeKVKKModal');
     
     // Contract modal
     if (showContractBtn && contractModal) {
@@ -1093,27 +1151,10 @@ function initializeModals() {
         });
     }
     
-    // KVKK modal
-    if (showKVKKBtn && kvkkModal) {
-        showKVKKBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            kvkkModal.style.display = 'block';
-        });
-    }
-    
-    if (closeKVKKModal && kvkkModal) {
-        closeKVKKModal.addEventListener('click', function() {
-            kvkkModal.style.display = 'none';
-        });
-    }
-    
-    // Close modals when clicking outside
+    // Close modal when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === contractModal) {
             contractModal.style.display = 'none';
-        }
-        if (event.target === kvkkModal) {
-            kvkkModal.style.display = 'none';
         }
     });
 }
